@@ -49,6 +49,8 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
                     citation_dict[idx] = citations
                 else:
                     citation_dict[idx] += citations
+
+    print(citation_dict)
                     
     citations_ordered = {k: v for k, v in sorted(citation_dict.items(), key=lambda item: item[1], reverse = True)}
     top_k_people = []
