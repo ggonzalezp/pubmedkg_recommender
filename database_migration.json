@@ -1,0 +1,123 @@
+
+
+{ 
+    "rules": [ 
+        { 
+            "rule_id": "1", 
+            "rule_name": "vertex_mapping_rule_from_a01_articles", 
+            "table_name": "A01_Articles", 
+            "vertex_definitions": [ 
+                { 
+                    "vertex_id_template": "{PMID}", 
+                    "vertex_label": "article", 
+                    "vertex_definition_id": "1", 
+                    "vertex_properties": [ 
+                      {
+                          "property_name": "journal_issn",
+                          "property_value_template": "{Journal_ISSN}",
+                          "property_value_type": "str"
+                        },
+                                              {
+                          "property_name": "title",
+                          "property_value_template": "{ArticleTitle}",
+                          "property_value_type": "str"
+                        },
+
+                        {
+                          "property_name": "publication_year",
+                          "property_value_template": "{Journal_JournalIssue_PubDate_Year}",
+                          "property_value_type": "str"
+                        }
+
+
+
+
+                    ] 
+                } 
+            ] 
+        }, 
+
+        { 
+            "rule_id": "2", 
+            "rule_name": "vertex_mapping_rule_from_a06_meshheadinglist", 
+            "table_name": "A06_MeshHeadingList", 
+            "vertex_definitions": [ 
+                    { 
+                    "vertex_id_template": "{DescriptorName_UI}", 
+                    "vertex_label": "mesh_heading", 
+                    "vertex_definition_id": "2", 
+                    "vertex_properties": [ 
+                      {
+                          "property_name": "name",
+                          "property_value_template": "{DescriptorName}",
+                          "property_value_type": "str"
+                        }
+
+                    ] 
+                } 
+            ] 
+        }, 
+
+        { 
+            "rule_id": "3", 
+            "rule_name": "edge_mapping_rule_from_a06_meshheadinglist", 
+            "table_name": "A06_MeshHeadingList", 
+            "edge_definitions": [ 
+                { 
+                    "from_vertex": 
+                    { 
+                        "vertex_id_template": "{PMID}", 
+                        "vertex_definition_id": "1" 
+                    }, 
+                    "to_vertex": 
+                    { 
+                        "vertex_id_template": "{DescriptorName_UI}", 
+                        "vertex_definition_id": "2" 
+                    }, 
+                    "edge_id_template": 
+                    { 
+                        "label": "contains_mesh", 
+                        "template" : "{PMID}_contains_{DescriptorName_UI}" 
+                    }, 
+                    "edge_properties":[ 
+                        { 
+                            "property_name": "is_keyworkd", 
+                            "property_value_template": "{DescriptorName_MajorTopicYN}", 
+                            "property_value_type": "str" 
+                        } 
+                      ]
+                  } ]
+          },
+
+
+
+            { 
+            "rule_id": "4", 
+            "rule_name": "edge_mapping_rule_from_a14_referencelist", 
+            "table_name": "A14_ReferenceList", 
+            "edge_definitions": [ 
+                { 
+                    "from_vertex": 
+                    { 
+                        "vertex_id_template": "{PMID}", 
+                        "vertex_definition_id": "1" 
+                    }, 
+                    "to_vertex": 
+                    { 
+                        "vertex_id_template": "{RefArticleId}", 
+                        "vertex_definition_id": "1" 
+                    }, 
+                    "edge_id_template": 
+                    { 
+                        "label": "cites", 
+                        "template" : "{PMID}_cites_{RefArticleId}" 
+                    }
+                } 
+            ] 
+        } 
+
+
+        
+        
+    ] 
+} 
