@@ -7,6 +7,7 @@ import networkx as nx
 import simplejson as json
 
 def run_get_graph():
+    # import pdb; pdb.set_trace()
     p = Popen(['../run.sh', 'GenericBatchUser', 'test.txt'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = p.communicate(b"input data that is passed to subprocess' stdin")
     output = str(output)
@@ -19,16 +20,12 @@ def run_get_graph():
     conn = pymysql.connect(host=host, user=user,port=port,
                                    passwd=password, db = dbname)
     # get id of the keywords
-    num = 0
+    # import pdb; pdb.set_trace()
     descriptors = []
-    for idx, char in enumerate(output):
-        if char == '|':
-            num += 1
-            if (num - 2)%8 == 0:
-                position1 = idx + 1
-            if (num - 3)%8 == 0:
-                position2 = idx
-                descriptors.append(output[position1:position2])
+    for entry in output.split('\\n'):
+        if entry != '\'':
+            if 'MM' in entry.split('|')[7]:
+                descriptors.append(entry.split('|')[2])
 
     print('got descriptors')
 
@@ -39,7 +36,7 @@ def run_get_graph():
         JOIN A06_MeshHeadingList t2 ON t2.PMID = t.RefArticleId
         WHERE t1.DescriptorName_UI in {}
         AND  t2.DescriptorName_UI in {}
-        LIMIT 100;
+        LIMIT 50;
         '''.format(tuple(descriptors), tuple(descriptors)), con=conn)
     G=nx.Graph()
     for arr in edges.values.astype('int'):
@@ -52,3 +49,7 @@ def run_get_graph():
     nx.write_gexf( G , 'test_graph.gexf' )
 
     return G, descriptors
+
+
+##to create A14 table    
+# CREATE TABLE A14_ReferenceList_20 AS SELECT * FROM A14_ReferenceList WHERE PMID IN (SELECT PMID FROM A01_Articles_20) AND RefArticleId IN (SELECT PMID FROM A01_Articles_20) ;
