@@ -12,13 +12,11 @@ def extract_overlapping_keywords(pmids):
     conn = pymysql.connect(host=host, user=user,port=port,
                            passwd=password, db = dbname)
 
-    print(pmids)
 
     keywords = pd.read_sql('''SELECT PMID, DescriptorName 
     FROM A06_MeshHeadingList 
     WHERE PMID in {};'''.format(tuple(pmids)), con=conn)
 
-    print(keywords)
 
     all_keywords = {}
     for pmid, keyword in keywords.values:

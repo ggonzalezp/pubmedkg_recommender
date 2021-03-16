@@ -227,7 +227,8 @@ if __name__ == '__main__':
         if selectedData:
             selectedData['points']
             num_of_nodes = len(selectedData['points'])
-            text = [html.P('Num of nodes selected: '+str(num_of_nodes))]
+            #text = [html.P('Num of nodes selected: '+str(num_of_nodes))]
+            text = []
             pmids = []
             for x in selectedData['points']:
                 if x['text'][:x['text'].find('<br>')] in title_to_pmid:
@@ -236,8 +237,11 @@ if __name__ == '__main__':
                     pmids.append(x['text'][:x['text'].find('<br>')])
             keywords = extract_overlapping_keywords(pmids)
             keyword_string = 'Keywords:'
-            for keyword in keywords:
-                keyword_string += (', ' + str(keyword))
+            for idx, keyword in enumerate(keywords):
+                if idx > 0:
+                    keyword_string += (', ' + str(keyword))
+                else:
+                    keyword_string += (' ' + str(keyword))
             text.append(html.P(keyword_string))
 
             return text
