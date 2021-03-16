@@ -19,10 +19,18 @@ if __name__ == '__main__':
     app = dash.Dash()
 
     app.layout = html.Div([
-    dcc.Input(id='username', value='', type='text', size='80'),
+        html.Div(
+            id="banner",
+            children=[
+                html.H2("PubMed knowledge graph explorer", id='title')
+            ],
+        ),
+    html.Div(children=[
+    html.H3(children='Introduce keywords or text:'),
+    dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
     html.Button(id='submit-button', type='submit', children='Submit'),
     html.Div(id='output_div')
-                                            ])
+                                            ], id='div_main')])
 
     @app.callback(Output('output_div', 'children'),
     [Input('submit-button', 'n_clicks')],
