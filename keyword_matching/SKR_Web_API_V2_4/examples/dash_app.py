@@ -37,17 +37,12 @@ if __name__ == '__main__':
     #for stylesheet in stylesheets:
     #    app.css.append_css({"external_scripts": "/static/{}".format(stylesheet)})
 
-    df1 = {'columns': ['Recommended Papers 📄', 'URL', 'Last Author']}
+    df1 = {'columns': ['Recommended Papers 📄', 'PMID', 'Last Author']}
     df2 =  {'columns': ['Recommended People 👩‍🔬👨‍🔬', 'Affiliation 🏫', 'Citations', 'Number of Papers']}
     df3 = {'columns': ['Affiliation 🏫', 'Number of Papers']}
 
     app.layout = html.Div([
-        html.Div(
-            id="banner",
-            children=[
-                html.H2("PubMed knowledge graph explorer", id='title')
-            ],
-        ),
+        html.Div(id="banner", children=[html.H1("PubMed knowledge graph explorer", id='title')],),
     html.Div(children=[
     html.H3(children='Introduce keywords or text:'),
     dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
@@ -157,11 +152,15 @@ if __name__ == '__main__':
             #}
 
 
-            layout = [dash_table.DataTable(
+            layout = [html.Div(children=[
+
+                html.H2(children='Recommendations', id='title_rec'),
+
+                dash_table.DataTable(
             id='table1',
                 columns=[{"name": i, "id": i} for i in df1['columns']],
-                    data=[{'Recommended Papers 📄': x, 'URL': 'https://pubmed.ncbi.nlm.nih.gov/{}/'.format(title_to_pmid[x]), 'Last Author': papers_to_author[x]} for x in top_k_papers],
-                    style_header={'backgroundColor': '#E0FFFF'},
+                    data=[{'Recommended Papers 📄': x, 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x]} for x in top_k_papers],
+                    style_header={'backgroundColor': '#f2f2f2'},
                     style_cell={'textAlign': 'left'},
                     style_table={"margin-top": "25px"},
             style_cell_conditional=[
@@ -174,7 +173,7 @@ if __name__ == '__main__':
                     id='table2',
                         columns=[{"name": i, "id": i} for i in df2['columns']],
                             data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
-                            style_header={'backgroundColor': '#E6E6FA'},
+                            style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink'},
                             style_cell={'textAlign': 'left'},
                             style_table={"margin-top": "25px"},
                     style_cell_conditional=[
@@ -188,7 +187,7 @@ if __name__ == '__main__':
                     id='table3',
                         columns=[{"name": i, "id": i} for i in df3['columns']],
                             data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
-                            style_header={'backgroundColor': '#68FFB3'},
+                            style_header={'backgroundColor': '#f2f2f2'},
                             style_cell={'textAlign': 'left'},
                             style_table={"margin-top": "25px"},
                     style_cell_conditional=[
@@ -197,9 +196,9 @@ if __name__ == '__main__':
                             'textAlign': 'left'
                         }
                     ]
-            ),
+            )], id='div_table_analytics'),
 
-            html.Div(dcc.Graph(id='Graph',figure=fig))]
+            html.Div(dcc.Graph(id='Graph',figure=fig), id='div_graph')]
             
             return layout
 
