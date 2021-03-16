@@ -10,6 +10,18 @@ import networkx as nx
 import plotly.graph_objs as go
 
 
+from paper_nodes_to_knowledge import articles_to_knowledge
+
+host="pubmed-database.c7xgknkzchxj.eu-west-2.rds.amazonaws.com"
+port=3306
+dbname="pubmed"
+user="jks17"
+password="password"
+
+
+
+
+
 if __name__ == '__main__':
     host="pubmed-database.c7xgknkzchxj.eu-west-2.rds.amazonaws.com"
     port=3306
@@ -30,20 +42,37 @@ if __name__ == '__main__':
     df3 = {'columns': ['Affiliation 🏫', 'Number of Papers']}
 
     app.layout = html.Div([
-    dcc.Input(id='username', value='', type='text', size='80'),
+        html.Div(
+            id="banner",
+            children=[
+                html.H2("PubMed knowledge graph explorer", id='title')
+            ],
+        ),
+    html.Div(children=[
+    html.H3(children='Introduce keywords or text:'),
+    dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
     html.Button(id='submit-button', type='submit', children='Submit'),
-    html.Div(id='output_div'),])
+    html.Div(id='output_div')
+                            ], id='div_main')])
 
 
     @app.callback(Output('output_div', 'children'),
     [Input('submit-button', 'n_clicks')],
     [State('username', 'value')],
+                     
+
+
+
+
                                                                               )
     def update_output(clicks, input_value):
         if clicks is not None:
             my_file = open("test.txt","w+")
             my_file.write(input_value)
             my_file.close()
+
+
+
             #print('getting graph')
             #graph, descriptors = run_get_graph(host, port, dbname, user, password)
             #print('obtained graph')
@@ -53,6 +82,7 @@ if __name__ == '__main__':
             graph = nx.read_gexf("test_graph.gexf")
             top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title = graph_to_recommend(graph, host, port, dbname, user, password)
             title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
+            sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
             #get a x,y position for each node
             pos = nx.layout.spring_layout(graph)
 
@@ -183,6 +213,7 @@ if __name__ == '__main__':
     #        material = int(x['text'].split('<br>')[0][10:])
     #        text.append(html.P(str(material)))
     #return text
+
 
     
 

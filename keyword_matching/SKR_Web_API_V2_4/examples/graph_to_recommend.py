@@ -17,8 +17,8 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
     top_k_papers_pmids = list(pagerank_ordered.keys())[:k_papers + 2]
     # now get the paper titles of these 5 papers and their last author
 
-    conn = pymysql.connect(host=host, user=user,port=port,
-                            passwd=password, db = dbname)
+    conn = pymysql.connect(host=host, user=user,port=port, passwd=password, db = dbname)
+
 
     articles = pd.read_sql('''SELECT A01_Articles.PMID, A01_Articles.ArticleTitle, A01_Articles.DateCompleted, 
                 A02_AuthorList.LastName, A02_AuthorList.ForeName
@@ -48,8 +48,8 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
         ORDER BY Au_Order DESC;'''.format(tuple(list(graph.nodes()))), con=conn)
 
 
-
     conn.close()
+
 
     citation_dict = {} # stores the number of citations for each author
     number_papers_dict = {} # stores the number of papers for each author
