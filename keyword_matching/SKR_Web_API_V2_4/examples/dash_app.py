@@ -11,6 +11,7 @@ import plotly.graph_objs as go
 
 
 from paper_nodes_to_knowledge import articles_to_knowledge
+from paper_nodes_to_keywords import extract_overlapping_keywords
 
 global title_to_pmid
 title_to_pmid = {}
@@ -227,12 +228,18 @@ if __name__ == '__main__':
             selectedData['points']
             num_of_nodes = len(selectedData['points'])
             text = [html.P('Num of nodes selected: '+str(num_of_nodes))]
+            pmids = []
             for x in selectedData['points']:
                 if x['text'][:x['text'].find('<br>')] in title_to_pmid:
-                    material = title_to_pmid[x['text'][:x['text'].find('<br>')]]
+                    pmids.append(title_to_pmid[x['text'][:x['text'].find('<br>')]])
                 else:
-                    material = x['text'][:x['text'].find('<br>')]
-                text.append(html.P(str(material)))
+                    pmids.append(x['text'][:x['text'].find('<br>')])
+            keywords = extract_overlapping_keywords(pmids)
+            keyword_string = 'Keywords:'
+            for keyword in keywords:
+                keyword_string += (', ' + str(keyword))
+            text.append(html.P(keyword_string))
+
             return text
         else:
             return None
