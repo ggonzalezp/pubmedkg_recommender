@@ -240,7 +240,7 @@
                     "vertex_definition_id": "5", 
                     "vertex_properties": [ 
                       {
-                          "property_name": "affiliation",
+                          "property_name": "affiliation_name",
                           "property_value_template": "{Affiliation}",
                           "property_value_type": "str"
                         }
@@ -294,7 +294,7 @@
             "table_name": "A04_Abstract", 
             "vertex_definitions": [ 
                 { 
-                    "vertex_id_template": "{PMID}", 
+                    "vertex_id_template": "{PMID}",  
                     "vertex_definition_id": "1", 
                     "vertex_properties": [ 
                       {
