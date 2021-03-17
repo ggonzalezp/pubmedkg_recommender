@@ -116,7 +116,7 @@ html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}
 	display: block;
 	margin-left:auto;
 	margin-right:auto;
-	border:;
+	
 }
 
 #title_rec{
@@ -124,19 +124,39 @@ html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}
 	font-weight: 500;
 }
 
+
+#output_div{
+	width:80%;
+		display: block;
+	margin-left:auto;
+	margin-right:auto;
+}
 #div_table_analytics{
-	width: 50%;
+	width: 100%;
 	background-color: white;
 
 
 }
 
+#table2{
+	width: 80%;
+	display: block;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+#table3 {
+	width: 65%;
+	display: block;
+	margin-left:auto;
+	margin-right:auto;
+}
 
 
 #div_graph{
 	width: 100%;
 	background-color: white;
-	padding-top:50px;
+	padding-top:80px;
 	margin-left:auto;
 	margin-right:auto;
 
@@ -178,3 +198,6 @@ body{
 
 html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}
 
+table{
+table-layout: fixed;
+}

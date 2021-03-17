@@ -35,25 +35,34 @@ if __name__ == '__main__':
     #for stylesheet in stylesheets:
     #    app.css.append_css({"external_scripts": "/static/{}".format(stylesheet)})
 
-    df1 = {'columns': ['Recommended Papers 📄', 'PMID', 'Last Author']}
+    df1 = {'columns': ['Recommended Papers 📄', 'PMID', 'Last Author', 'Sentences extracted']}
     df2 =  {'columns': ['Recommended People 👩‍🔬👨‍🔬', 'Affiliation 🏫', 'Citations', 'Number of Papers']}
     df3 = {'columns': ['Affiliation 🏫', 'Number of Papers']}
 
     app.layout = html.Div([
         html.Div(id="banner", children=[html.H1("PubMed knowledge graph explorer", id='title')],),
-    html.Div(children=[
-    html.H3(children='Introduce keywords or text:'),
-    dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
-    html.Button(id='submit-button', type='submit', children='Submit'),
-    html.Div(id='output_div'),
-    dcc.Graph(id='Graph', figure=go.Figure(data=[],
-             layout=go.Layout(
-                title='',
-                titlefont_size=16,
-                )), style={"backgroundColor": "#F2F3F4", 'color': '#F2F3F4'}),
-    #dcc.Graph(id='Graph', figure=None),
-    html.Div(id='selected-data')
-                            ], id='div_main')])
+# <<<<<<< HEAD
+#     html.Div(children=[
+#     html.H3(children='Introduce keywords or text:'),
+#     dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
+#     html.Button(id='submit-button', type='submit', children='Submit'),
+#     html.Div(id='output_div'),
+#     dcc.Graph(id='Graph', figure=go.Figure(data=[],
+#              layout=go.Layout(
+#                 title='',
+#                 titlefont_size=16,
+#                 )), style={"backgroundColor": "#F2F3F4", 'color': '#F2F3F4'}),
+#     #dcc.Graph(id='Graph', figure=None),
+#     html.Div(id='selected-data')
+#                             ], id='div_main')])
+# =======
+        html.Div(children=[
+                            html.H3(children='Introduce keywords or text:'),
+                            dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
+                            html.Button(id='submit-button', type='submit', children='Submit')
+                            ], id='div_main'),
+        html.Div(id='output_div')])
+# >>>>>>> wip_style
 
     @app.callback(Output('output_div', 'children'),
     Output('Graph', 'figure'),
@@ -132,11 +141,11 @@ if __name__ == '__main__':
 
             fig = go.Figure(data=[edge_trace, node_trace],
              layout=go.Layout(
-                title='<br>Citation graph of related papers',
+                # title='<br>Citation graph of related papers<br>',
                 titlefont_size=16,
                 showlegend=False,
                 hovermode='closest',
-                margin=dict(b=20,l=5,r=5,t=40),
+                margin=dict(b=50,l=5,r=5,t=40),
                 annotations=[ dict(
                     showarrow=False,
                     xref="paper", yref="paper",
@@ -155,51 +164,117 @@ if __name__ == '__main__':
             #}
 
 
-            layout = [html.Div(children=[
+# <<<<<<< HEAD
+#             layout = [html.Div(children=[
 
-                html.H2(children='Recommendations', id='title_rec'),
+#                 html.H2(children='Recommendations', id='title_rec'),
 
-                dash_table.DataTable(
-            id='table1',
-                columns=[{"name": i, "id": i} for i in df1['columns']],
-                    data=[{'Recommended Papers 📄': x, 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x]} for x in top_k_papers],
-                    style_header={'backgroundColor': '#f2f2f2'},
-                    style_cell={'textAlign': 'left'},
-                    style_table={"margin-top": "25px"},
-            style_cell_conditional=[
-                {
-                    'if': {'column_id': 'Region'},
-                    'textAlign': 'left'
-                }]
-            ),
-            dash_table.DataTable(
-                    id='table2',
-                        columns=[{"name": i, "id": i} for i in df2['columns']],
-                            data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
-                            style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink'},
-                            style_cell={'textAlign': 'left'},
-                            style_table={"margin-top": "25px"},
-                    style_cell_conditional=[
-                        {
-                            'if': {'column_id': 'Region'},
-                            'textAlign': 'left'
-                        }
+#                 dash_table.DataTable(
+#             id='table1',
+#                 columns=[{"name": i, "id": i} for i in df1['columns']],
+#                     data=[{'Recommended Papers 📄': x, 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x]} for x in top_k_papers],
+#                     style_header={'backgroundColor': '#f2f2f2'},
+#                     style_cell={'textAlign': 'left'},
+#                     style_table={"margin-top": "25px"},
+#             style_cell_conditional=[
+#                 {
+#                     'if': {'column_id': 'Region'},
+#                     'textAlign': 'left'
+#                 }]
+#             ),
+#             dash_table.DataTable(
+#                     id='table2',
+#                         columns=[{"name": i, "id": i} for i in df2['columns']],
+#                             data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
+#                             style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink'},
+#                             style_cell={'textAlign': 'left'},
+#                             style_table={"margin-top": "25px"},
+#                     style_cell_conditional=[
+#                         {
+#                             'if': {'column_id': 'Region'},
+#                             'textAlign': 'left'
+#                         }
+#                     ]
+#             ),
+#             dash_table.DataTable(
+#                     id='table3',
+#                         columns=[{"name": i, "id": i} for i in df3['columns']],
+#                             data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
+#                             style_header={'backgroundColor': '#f2f2f2'},
+#                             style_cell={'textAlign': 'left'},
+#                             style_table={"margin-top": "25px"},
+#                     style_cell_conditional=[
+#                         {
+#                             'if': {'column_id': 'Region'},
+#                             'textAlign': 'left'
+#                         }
+#                     ]
+#             )], id='div_table_analytics')]
+# =======
+            layout = [html.Div([
+
+                                            html.H2(children='Recommendations', id='title_rec'),
+
+                                            dash_table.DataTable(
+                                                                    id='table1',
+                                                                    columns=[{"name": i, "id": i} for i in df1['columns']],
+                                                                    data=[{'Recommended Papers 📄': x[0:-6], 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x], 'Sentences extracted':sentences[title_to_pmid[x]]} for x in top_k_papers],
+                                                                    style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
+                                                                    style_cell={'textAlign': 'left'},
+                                                                    style_data={'whiteSpace': 'pre-wrap','height': 'auto'},
+                                                                    style_table={"margin-top": "25px", 'whiteSpace': 'normal', 'height': 'auto'},
+                                                                    style_cell_conditional=[
+                                                                                                {'if': {'column_id': 'Recommended Papers 📄'},
+                                                                                                 'width': '50%'},
+                                                                                                {'if': {'column_id': 'PMID'},
+                                                                                                 'width': '5%'},
+                                                                                                 {'if': {'column_id': 'Last Author'},
+                                                                                                 'width': '10%'},
+                                                                                                 {'if': {'column_id': 'Sentences extracted'},
+                                                                                                 'width': '35%'}
+                                                                                            ]
+                                                                ),
+
+                                            dash_table.DataTable(
+                                                                    id='table2',
+                                                                    columns=[{"name": i, "id": i} for i in df2['columns']],
+                                                                    data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
+                                                                    style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink', 'whiteSpace': 'normal','height': 'auto'},
+                                                                    style_cell={'textAlign': 'left'},
+                                                                    style_data={'whiteSpace': 'normal','height': 'auto'},
+                                                                    style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto', 'align': 'center'},
+                                                                    style_cell_conditional=[
+                                                                                                {'if': {'column_id': 'Recommended People 👩‍🔬👨‍🔬'},
+                                                                                                 'width': '25%'},
+                                                                                                {'if': {'column_id': 'Affiliation 🏫'},
+                                                                                                 'width': '55%'},
+                                                                                                 {'if': {'column_id': 'Citations'},
+                                                                                                 'width': '8%'},
+                                                                                                 {'if': {'column_id': 'Number of Papers'},
+                                                                                                 'width': '12%'}
+                                                                                            ]
+                                                                ),
+                                            dash_table.DataTable(
+                                                                    id='table3',
+                                                                    columns=[{"name": i, "id": i} for i in df3['columns']],
+                                                                    data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
+                                                                    style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
+                                                                    style_cell={'textAlign': 'left'},
+                                                                    style_data={'whiteSpace': 'normal','height': 'auto'},
+                                                                    style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto'},
+                                                                    style_cell_conditional=[
+                                                                                                {'if': {'column_id': 'Affiliation 🏫'},
+                                                                                                 'width': '85%'},
+                                                                                                {'if': {'column_id': 'Number of Papers'},
+                                                                                                 'width': '15%'}
+                                                                                            ]
+                                                                )
+                                ], id='div_table_analytics' ),
+
+                    html.Div([ html.H2(children='Citation graph of related papers', id='title_graph_div'),dcc.Graph(id='Graph',figure=fig)], id='div_graph') 
+
                     ]
-            ),
-            dash_table.DataTable(
-                    id='table3',
-                        columns=[{"name": i, "id": i} for i in df3['columns']],
-                            data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
-                            style_header={'backgroundColor': '#f2f2f2'},
-                            style_cell={'textAlign': 'left'},
-                            style_table={"margin-top": "25px"},
-                    style_cell_conditional=[
-                        {
-                            'if': {'column_id': 'Region'},
-                            'textAlign': 'left'
-                        }
-                    ]
-            )], id='div_table_analytics')]
+# >>>>>>> wip_style
             
             return layout, fig
         else:
