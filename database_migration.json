@@ -289,3 +289,61 @@
         }
     ]
 }
+
+// ,
+
+//         { 
+//             "rule_id": "11", 
+//             "rule_name": "vertex_mapping_rule_from_a04_abstracts", 
+//             "table_name": "A04_Abstract", 
+//             "vertex_definitions": [ 
+//                 { 
+//                     "vertex_id_template": "{id}",  
+//                     "vertex_label": "abstract", 
+//                     "vertex_definition_id": "6", 
+//                     "vertex_properties": [ 
+//                         {
+//                           "property_name": "pmid",
+//                           "property_value_template": "{PMID}",
+//                           "property_value_type": "str"
+//                         },
+
+//                       {
+//                           "property_name": "abstract_text",
+//                           "property_value_template": "{AbstractText}",
+//                           "property_value_type": "str"
+//                         },
+//                         {
+//                           "property_name": "keywords",
+//                           "property_value_template": "{KeywordExtraction}",
+//                           "property_value_type": "str"
+//                         }
+
+//                     ] 
+//                 } 
+//             ] 
+//         },
+//         { 
+//             "rule_id": "12", 
+//             "rule_name": "edge_mapping_rule_from_a04_abstracts", 
+//             "table_name": "A04_Abstract", 
+//             "edge_definitions": [ 
+//                 { 
+//                     "from_vertex": 
+//                     { 
+//                         "vertex_id_template": "{PMID}", 
+//                         "vertex_definition_id": "1" 
+//                     }, 
+//                     "to_vertex": 
+//                     { 
+//                         "vertex_id_template": "{id}", 
+//                         "vertex_definition_id": "6" 
+//                     }, 
+//                     "edge_id_template": 
+//                     { 
+//                         "label": "abstract", 
+//                         "template" : "{PMID}_abstract_{id}" 
+//                     }
+//                 } 
+//             ] 
+//         }
