@@ -40,6 +40,8 @@ if __name__ == '__main__':
     df3 = {'columns': ['Affiliation 🏫', 'Number of Papers']}
 
     app.layout = html.Div([
+        dcc.Tabs([
+            dcc.Tab(label='Main', children=[
                                 html.Div(id="banner", children=[html.H1("PubMed knowledge graph explorer", id='title')],),
                                 html.Div(children=[
                                                         html.H3(children='Introduce keywords or text:'),
@@ -58,7 +60,13 @@ if __name__ == '__main__':
                                                                 html.Div(id='selected-data')
                                             ], id='div_graph')
                             
-                            ])
+                            ]),
+            dcc.Tab(label='About', children=[
+            html.H3('About Page')
+                    ])
+        ])
+    ])
+        
 
     @app.callback(Output('output_div', 'children'),
     Output('Graph', 'figure'),
