@@ -41,7 +41,7 @@ if __name__ == '__main__':
     #for stylesheet in stylesheets:
     #    app.css.append_css({"external_scripts": "/static/{}".format(stylesheet)})
 
-    df1 = {'columns': ['Recommended Papers 📄', 'PMID', 'Last Author', 'Sentences extracted']}
+    df1 = {'columns': ['Recommended Papers 📄', 'PMID', 'Last Author', 'Article Summary']}
     df2 =  {'columns': ['Recommended People 👩‍🔬👨‍🔬', 'Affiliation 🏫', 'Citations', 'Number of Papers']}
     df3 = {'columns': ['Affiliation 🏫', 'Number of Papers']}
 
@@ -181,7 +181,7 @@ if __name__ == '__main__':
                                             dash_table.DataTable(
                                                                     id='table1',
                                                                     columns=[{"name": i, "id": i} for i in df1['columns']],
-                                                                    data=[{'Recommended Papers 📄': x[0:-6], 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x], 'Sentences extracted':sentences[title_to_pmid[x]]} for x in top_k_papers],
+                                                                    data=[{'Recommended Papers 📄': x[0:-6], 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x], 'Article Summary':sentences[title_to_pmid[x]]} for x in top_k_papers],
 
                                                                     style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
                                                                     style_cell={'textAlign': 'left'},
@@ -198,7 +198,7 @@ if __name__ == '__main__':
                                                                                                  'width': '5%'},
                                                                                                  {'if': {'column_id': 'Last Author'},
                                                                                                  'width': '10%'},
-                                                                                                 {'if': {'column_id': 'Sentences extracted'},
+                                                                                                 {'if': {'column_id': 'Article Summary'},
                                                                                                  'width': '35%'}
                                                                                             ]
                                                                 ),
