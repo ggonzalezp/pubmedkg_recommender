@@ -8,10 +8,16 @@ from graph_to_recommend import graph_to_recommend
 import os
 import networkx as nx
 import plotly.graph_objs as go
+from transformers import pipeline
 
 
-from paper_nodes_to_knowledge import articles_to_knowledge
+# Initialize the HuggingFace summarization pipeline
+summarizer = pipeline("summarization")
+
+
+#from paper_nodes_to_knowledge import articles_to_knowledge
 from paper_nodes_to_keywords import extract_overlapping_keywords
+from paper_nodes_to_summary import articles_to_summary
 
 global title_to_pmid
 title_to_pmid = {}
@@ -92,7 +98,8 @@ if __name__ == '__main__':
             top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title = graph_to_recommend(graph, host, port, dbname, user, password)
             global title_to_pmid
             title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
-            sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
+            #sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
+            sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
             #get a x,y position for each node
             pos = nx.layout.spring_layout(graph)
 
