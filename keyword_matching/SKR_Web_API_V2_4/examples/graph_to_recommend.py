@@ -1,6 +1,7 @@
 import networkx as nx
 import pymysql
 import pandas as pd
+import numpy as np
 
 k_papers = 5 # how many papers to return
 k_people = 5 # how many people to return
@@ -14,13 +15,23 @@ password="password"
 def graph_to_recommend(graph, host, port, dbname, user, password):
     pagerank = nx.pagerank(graph)
     pagerank_ordered = {k: v for k, v in sorted(pagerank.items(), key=lambda item: item[1], reverse = True)}
+    total_papers = 0
+    #papers = np.load("pmid_all_keywords.npy")
+    #top_k_papers_pmids = []
+    #while(total_papers < k_papers):
+    #    for pmid in list(pagerank_ordered.keys()):
+    #        if pmid in papers:
+    #            top_k_papers_pmids.append(pmid)
+    #            total_papers += 1
+
+
     top_k_papers_pmids = list(pagerank_ordered.keys())[:k_papers + 2]
     # now get the paper titles of these 5 papers and their last author
 
     conn = pymysql.connect(host=host, user=user,port=port, passwd=password, db = dbname)
 
 
-    articles = pd.read_sql('''SELECT A01_Articles.PMID, A01_Articles.ArticleTitle, A01_Articles.DateCompleted, 
+    articles = pd.read_sql('''SELECT DISTINCT A01_Articles.PMID, A01_Articles.ArticleTitle, A01_Articles.DateCompleted, 
                 A02_AuthorList.LastName, A02_AuthorList.ForeName
                 FROM A01_Articles
                 JOIN A02_AuthorList ON A02_AuthorList.PMID = A01_Articles.PMID
@@ -40,12 +51,16 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
 
     # now get the key authors from the graph
 
-    people = pd.read_sql('''SELECT A02_AuthorList.PMID, A02_AuthorList.LastName, A02_AuthorList.ForeName, 
+    people = pd.read_sql('''SELECT DISTINCT A02_AuthorList.PMID, A02_AuthorList.LastName, A02_AuthorList.ForeName, 
     A02_AuthorList.S2ID, A02_AuthorList.Au_Order, A02_AuthorList.AuthorNum, A13_AffiliationList.Affiliation
         FROM A02_AuthorList
         JOIN A13_AffiliationList ON A13_AffiliationList.PMID = A02_AuthorList.PMID
         WHERE A02_AuthorList.PMID in {} 
         ORDER BY Au_Order DESC;'''.format(tuple(list(graph.nodes()))), con=conn)
+
+    #affiliations = pd.read_sql('''SELECT AffiliationInfo_Affiliation
+    #FROM A12_InvestigatorList
+    #    WHERE A12_InvestigatorList.PMID in {};'''.format(tuple(list(graph.nodes()))), con=conn)
 
 
     conn.close()
@@ -53,21 +68,23 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
 
     citation_dict = {} # stores the number of citations for each author
     number_papers_dict = {} # stores the number of papers for each author
-    articles = {} 
+    art = {} 
     authors_to_affiliation = {}
     author_idx_to_name = {}
     affiliation_paper_count = {} # stores the number of papers for each affiliation
-
+    author_latest_paper = {}
     for pmid, lastname, forname, idx, author_order, num_authors, affiliation in people.values:
         authors_to_affiliation[forname + ' ' + lastname] = affiliation
         # need to test to see if we have used this paper before for affiliation information
-        if pmid not in articles:
-            articles[pmid] = True
+        #if 'Munich' in affiliation:
+        #    print(affiliation)
+        if pmid not in art:
+            art[pmid] = True
             if affiliation not in affiliation_paper_count:
                 affiliation_paper_count[affiliation] = 1
             else:
                 affiliation_paper_count[affiliation] += 1     
-        if idx != 0:
+        if idx != 0 and not np.isnan(idx):
             author_idx_to_name[idx] = forname + ' ' + lastname
             citations = graph.degree(str(pmid))
             if idx not in citation_dict:
@@ -75,9 +92,17 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
             else:
                 citation_dict[idx] += citations
             if idx not in number_papers_dict:
-                number_papers_dict[idx] = 1
+                if idx in author_latest_paper:
+                    if author_latest_paper[idx] != pmid:
+                        number_papers_dict[idx] = 1
+                else:
+                    number_papers_dict[idx] = 1
+                    
+                author_latest_paper[idx] = pmid
             else:
-                number_papers_dict[idx] += 1
+                if author_latest_paper[idx] != pmid:
+                    number_papers_dict[idx] += 1
+                author_latest_paper[idx] = pmid
 
     affiliation_paper_count_ordered = {k: v for k, v in sorted(affiliation_paper_count.items(), key=lambda item: item[1], reverse = True)}
     # get top k affiliations
