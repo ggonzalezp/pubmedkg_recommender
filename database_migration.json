@@ -315,7 +315,7 @@
 //                         },
 //                         {
 //                           "property_name": "keywords",
-//                           "property_value_template": "{KeywordExtraction}",
+//                           "property_value_template": "{Keyword_Extraction}",
 //                           "property_value_type": "str"
 //                         }
 
