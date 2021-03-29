@@ -9,6 +9,7 @@ import os
 import networkx as nx
 import plotly.graph_objs as go
 from transformers import pipeline
+import pickle
 
 
 # Initialize the HuggingFace summarization pipeline
@@ -21,6 +22,9 @@ from paper_nodes_to_summary import articles_to_summary
 
 global title_to_pmid
 title_to_pmid = {}
+
+with open("pmid_to_summary_demo.pickle", 'rb') as f:
+    pmid_to_sentence = pickle.load(f)
 
 
 
@@ -115,13 +119,20 @@ We are also able to give author and department recommendations based on the cita
             #top_k_papers, top_k_people = graph_to_recommend(graph, host, port, dbname, user, password)
 
 
-            #graph = nx.read_gexf("test_graph_full.gexf")
-            graph = nx.read_gexf("test_graph.gexf")
-            top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title = graph_to_recommend(graph, host, port, dbname, user, password)
+            graph = nx.read_gexf("test_graph_full.gexf")
+            #graph = nx.read_gexf("test_graph.gexf")
+            top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, host, port, dbname, user, password)
             global title_to_pmid
             title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
             #sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
-            sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
+            #sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
+
+            # get precomputed sentences
+            sentences = {}
+            for idx in top_k_papers_pmids:
+                sentences[idx] = pmid_to_sentence[idx]
+
+            
             #get a x,y position for each node
             pos = nx.layout.spring_layout(graph)
 

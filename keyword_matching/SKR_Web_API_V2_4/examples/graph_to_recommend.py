@@ -11,6 +11,7 @@ port=3306
 dbname="pubmed"
 user="jks17"
 password="password"
+nodes_graph_visualisation = 50
 
 def graph_to_recommend(graph, host, port, dbname, user, password):
     pagerank = nx.pagerank(graph)
@@ -25,7 +26,7 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
     #            total_papers += 1
 
 
-    top_k_papers_pmids = list(pagerank_ordered.keys())[:k_papers + 2]
+    top_k_papers_pmids = list(pagerank_ordered.keys())[:k_papers]
     # now get the paper titles of these 5 papers and their last author
 
     conn = pymysql.connect(host=host, user=user,port=port, passwd=password, db = dbname)
@@ -58,13 +59,8 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
         WHERE A02_AuthorList.PMID in {} 
         ORDER BY Au_Order DESC;'''.format(tuple(list(graph.nodes()))), con=conn)
 
-    #affiliations = pd.read_sql('''SELECT AffiliationInfo_Affiliation
-    #FROM A12_InvestigatorList
-    #    WHERE A12_InvestigatorList.PMID in {};'''.format(tuple(list(graph.nodes()))), con=conn)
-
 
     conn.close()
-
 
     citation_dict = {} # stores the number of citations for each author
     number_papers_dict = {} # stores the number of papers for each author
@@ -75,9 +71,6 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
     author_latest_paper = {}
     for pmid, lastname, forname, idx, author_order, num_authors, affiliation in people.values:
         authors_to_affiliation[forname + ' ' + lastname] = affiliation
-        # need to test to see if we have used this paper before for affiliation information
-        #if 'Munich' in affiliation:
-        #    print(affiliation)
         if pmid not in art:
             art[pmid] = True
             if affiliation not in affiliation_paper_count:
@@ -139,7 +132,13 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
                 top_k_people.append(papers_to_author[paper])
                 top_k_people_ids.append(author_name_to_idx[papers_to_author[paper]])
 
-    return top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_count, pmid_to_title
+
+    # remove nodes in graph for quick visualisation
+    for idx, key in enumerate(pagerank_ordered.keys()):
+        if idx >= nodes_graph_visualisation:
+            graph.remove_node(key)
+
+    return top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_count, pmid_to_title, graph
 
 
 
