@@ -35,9 +35,9 @@ class Net(torch.nn.Module):
 		self.transform_mesh = Linear(data.mesh_feature_dim, n_dim_initial_embedding)
 		self.conv1 = RGCNConv(n_dim_initial_embedding, 64, n_relations, num_bases=num_bases)
 		self.conv2 = RGCNConv(64, 64, n_relations, num_bases=num_bases)
-		self.conv3 = RGCNConv(64, 16, n_relations, num_bases=num_bases)
-		self.decoding_matrix_paper_paper = Linear(16, 16)
-		self.decoding_matrix_paper_mesh = Linear(16, 16)
+		self.conv3 = RGCNConv(64, 8, n_relations, num_bases=num_bases)
+		self.decoding_matrix_paper_paper = Linear(8, 8)
+		self.decoding_matrix_paper_mesh = Linear(8, 8)
 	def encode(self):
 		x = torch.cat([self.transform_paper(data.x_paper), self.transform_mesh(data.x_mesh)], 0)
 		x = self.conv1(x, data.train_pos_edge_index, data.train_pos_edge_type)
@@ -138,7 +138,7 @@ for epoch in range(1, 10):
 # self.conv2 = RGCNConv(64, 64, n_relations, num_bases=num_bases)
 # self.conv3 = RGCNConv(64, 16, n_relations, num_bases=num_bases)
 embeddings = model.encode()
-torch.save(embeddings, 'paper_mesh_embeddings.pk')
+torch.save(embeddings.detach().cpu().numpy(), 'paper_mesh_embeddings.pk')
 
 display.close()
 
