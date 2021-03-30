@@ -2,7 +2,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output, State, Input
-from test import run_get_graph
+from test import run_get_graph_2
 import dash_table
 from graph_to_recommend import graph_to_recommend
 import os
@@ -11,26 +11,38 @@ import plotly.graph_objs as go
 from transformers import pipeline
 import pickle
 
+import torch
+import json
 
 # Initialize the HuggingFace summarization pipeline
 summarizer = pipeline("summarization")
 
 
-#from paper_nodes_to_knowledge import articles_to_knowledge
+from paper_nodes_to_knowledge import articles_to_knowledge
 from paper_nodes_to_keywords import extract_overlapping_keywords
 from paper_nodes_to_summary import articles_to_summary
 
 global title_to_pmid
 title_to_pmid = {}
 
-with open("pmid_to_summary_demo.pickle", 'rb') as f:
-    pmid_to_sentence = pickle.load(f)
+# with open("pmid_to_summary_demo.pickle", 'rb') as f:
+#     pmid_to_sentence = pickle.load(f)
 
 
+global mesh_info
+
+# with open('../../../graph_embedding/dataset/dict_pmid_refs.json') as json_file:
+#     dict_pmid_refs = json.load(json_file)
 
 
+# with open('../../../graph_embedding/dataset/dict_mesh_pmids.json') as json_file:
+#     dict_mesh_pmids = json.load(json_file)
 
 if __name__ == '__main__':
+    # import pdb; pdb.set_trace()
+
+
+
     host="pubmed-database.c7xgknkzchxj.eu-west-2.rds.amazonaws.com"
     port=3306
     dbname="pubmed"
@@ -113,26 +125,27 @@ We are also able to give author and department recommendations based on the cita
 
 
 
-            #print('getting graph')
-            #graph, descriptors = run_get_graph(host, port, dbname, user, password)
+            print('getting graph')
+            graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
             #print('obtained graph')
             #top_k_papers, top_k_people = graph_to_recommend(graph, host, port, dbname, user, password)
 
 
-            graph = nx.read_gexf("test_graph_full.gexf")
-            #graph = nx.read_gexf("test_graph.gexf")
+            # import pdb; pdb.set_trace()
+            graph = nx.read_gexf("test_graph.gexf")
             top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, host, port, dbname, user, password)
             global title_to_pmid
             title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
-            #sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
-            #sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
+            # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
+            sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
 
-            # get precomputed sentences
-            sentences = {}
-            for idx in top_k_papers_pmids:
-                sentences[idx] = pmid_to_sentence[idx]
+                        # # get precomputed sentences
+            # sentences = {}
+            # for idx in top_k_papers_pmids:
+            #     sentences[idx] = pmid_to_sentence[idx]
 
-            
+
+
             #get a x,y position for each node
             pos = nx.layout.spring_layout(graph)
 
@@ -143,6 +156,7 @@ We are also able to give author and department recommendations based on the cita
                 line=dict(width=0.5,color='#888'),
                 hoverinfo='none',
                 mode='lines')
+            
             for edge in graph.edges():
                 x0, y0 = pos[graph.nodes[edge[0]]['label']]
                 x1, y1 = pos[graph.nodes[edge[1]]['label']]

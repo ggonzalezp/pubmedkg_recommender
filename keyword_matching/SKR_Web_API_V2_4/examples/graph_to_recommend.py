@@ -14,9 +14,12 @@ password="password"
 nodes_graph_visualisation = 50
 
 def graph_to_recommend(graph, host, port, dbname, user, password):
+    print('entered')
+
     pagerank = nx.pagerank(graph)
     pagerank_ordered = {k: v for k, v in sorted(pagerank.items(), key=lambda item: item[1], reverse = True)}
     total_papers = 0
+    print('did pagerank')
     #papers = np.load("pmid_all_keywords.npy")
     #top_k_papers_pmids = []
     #while(total_papers < k_papers):
@@ -51,6 +54,7 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
                 top_k_papers.append(title + ' ' + str(year))
 
     # now get the key authors from the graph
+    print('queried 1')
 
     people = pd.read_sql('''SELECT DISTINCT A02_AuthorList.PMID, A02_AuthorList.LastName, A02_AuthorList.ForeName, 
     A02_AuthorList.S2ID, A02_AuthorList.Au_Order, A02_AuthorList.AuthorNum, A13_AffiliationList.Affiliation
@@ -61,6 +65,7 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
 
 
     conn.close()
+    print('queried 2')
 
     citation_dict = {} # stores the number of citations for each author
     number_papers_dict = {} # stores the number of papers for each author
@@ -79,6 +84,7 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
                 affiliation_paper_count[affiliation] += 1     
         if idx != 0 and not np.isnan(idx):
             author_idx_to_name[idx] = forname + ' ' + lastname
+            # import pdb; pdb.set_trace()
             citations = graph.degree(str(pmid))
             if idx not in citation_dict:
                 citation_dict[idx] = citations
@@ -97,6 +103,7 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
                     number_papers_dict[idx] += 1
                 author_latest_paper[idx] = pmid
 
+                
     affiliation_paper_count_ordered = {k: v for k, v in sorted(affiliation_paper_count.items(), key=lambda item: item[1], reverse = True)}
     # get top k affiliations
     i = 0 
@@ -105,7 +112,7 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
         if i < k_affiliations:
             affiliation_count[key] = affiliation_paper_count_ordered[key]
         i += 1
-                
+               
     # now we rank the authors using some kind of metric
     def author_metric(citations, num_papers):
         metric = citations*num_papers
