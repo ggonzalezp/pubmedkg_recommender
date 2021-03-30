@@ -94,23 +94,21 @@ if __name__ == '__main__':
             html.P(
                          """
 The PubMed knowledge graph explorer is designed to be a useful tool for promising students to explore new topics and to find a department and supervisor 
-at the forefront of their field of interest. The tool provides a simple interface, whereby a user can input text or keywords as shown in Figure \ref{fig:input_box}. The input is then used to obtain paper recommendations for a specified topic as well as to get information regarding the 
+at the forefront of their field of interest. The tool provides a simple interface, whereby a user can input text or keywords. The input is then used to obtain paper recommendations for a specified topic as well as to get information regarding the 
 key authors and departments in the area.
 """
                            ),
-            html.H3('Extracting keywords and Querying the Database'),
-            html.P('''Mesh terms are extracted from the input using the MeSH on Demand API.'''),
-            html.H3('Creating the Citation Graph'),
-            html.P(''' The selected papers form a citation graph where edges between
+            html.H3('1) Extracting keywords and Querying the Database'),
+            html.P('''  Mesh terms are extracted from the input using the MeSH on Demand API.'''),
+            html.H3('2) Creating the Citation Graph'),
+            html.P('''  The selected papers form a citation graph where edges between
 the paper nodes correspond to a reference. This citation graph is supplied interactively to the user. The user can hover
 over paper nodes to find their title; select clusters of nodes to which we list their common keywords as well as easily visualise which papers have the most connections in the citation graph.'''),
-html.H3('Paper Recommendations'),
-html.P(''' 
-We apply the page-rank algorithm on the citation graph in order to get the top k paper recommendations for the user. We additionally filter on these recommendations so that the suggested papers have the maximal number of corresponding keywords. The recommended papers are outlined to the user in a table format. We obtain the article summary by applying an implementation of the Bidirectional and Auto-Regressive Transformer to the paper's abstract. The model is implemented in the HuggingFace library and has been pre-trained on text summarization using the CNN/DailyMail summarization dataset.
+html.H3('3) Paper Recommendations'),
+html.P('''  We apply the page-rank algorithm on the citation graph in order to get the top k paper recommendations for the user. We additionally filter on these recommendations so that the suggested papers have the maximal number of corresponding keywords. The recommended papers are outlined to the user in a table format. We obtain the article summary by applying an implementation of the Bidirectional and Auto-Regressive Transformer to the paper's abstract. The model is implemented in the HuggingFace library and has been pre-trained on text summarization using the CNN/DailyMail summarization dataset.
 '''),
-html.H3('Author and Department Recommendations'),
-html.P('''
-We are also able to give author and department recommendations based on the citation graph. We introduce an author metric (number of citations x number of papers) and list the authors with the highest value of this metric in the graph. Additionally, we calculate the affiliations with the most number of papers in the graph. We provide the author recommendations and the most published affiliations to the user
+html.H3('4) Author and Department Recommendations'),
+html.P('''  We are also able to give author and department recommendations based on the citation graph. We introduce an author metric (number of citations x number of papers) and list the authors with the highest value of this metric in the graph. Additionally, we provide the affiliation for these authors based on their latest paper.
 ''')
                     ])
         ])
