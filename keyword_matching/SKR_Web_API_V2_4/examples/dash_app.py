@@ -58,7 +58,7 @@ if __name__ == '__main__':
     #    app.css.append_css({"external_scripts": "/static/{}".format(stylesheet)})
 
     df1 = {'columns': ['Recommended Papers 📄', 'PMID', 'Last Author', 'Article Summary']}
-    df2 =  {'columns': ['Recommended People 👩‍🔬👨‍🔬', 'Affiliation 🏫', 'Citations', 'Number of Papers']}
+    df2 =  {'columns': ['Recommended People 👩‍🔬👨‍🔬', 'Latest Affiliation 🏫', 'Citations', 'Number of Papers']}
     df3 = {'columns': ['Affiliation 🏫', 'Number of Papers']}
 
     app.layout = html.Div([
@@ -72,7 +72,13 @@ if __name__ == '__main__':
 
                                                     ], id='div_main'),
     
-                                html.Div(id='output_div'),
+                                html.Div(
+                                dcc.Loading(
+                                    id="loading-2",
+                                    children=[html.Div(id='output_div')],
+                                    type="circle",
+                                )),
+                                #html.Div(id='output_div'),
                                 html.Div([dcc.Graph(id='Graph', figure=go.Figure(data=[],
                                                                 layout=go.Layout(
                                                                 title='',
@@ -126,13 +132,13 @@ We are also able to give author and department recommendations based on the cita
 
 
             print('getting graph')
-            graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
+            #graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
             #print('obtained graph')
             #top_k_papers, top_k_people = graph_to_recommend(graph, host, port, dbname, user, password)
 
 
             # import pdb; pdb.set_trace()
-            graph = nx.read_gexf("test_graph.gexf")
+            graph = nx.read_gexf("test_graph_error.gexf")
             top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, host, port, dbname, user, password)
             global title_to_pmid
             title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
@@ -253,7 +259,7 @@ We are also able to give author and department recommendations based on the cita
                                             dash_table.DataTable(
                                                                     id='table2',
                                                                     columns=[{"name": i, "id": i} for i in df2['columns']],
-                                                                    data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
+                                                                    data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Latest Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
                                                                     style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink', 'whiteSpace': 'normal','height': 'auto'},
                                                                     style_cell={'textAlign': 'left'},
 
@@ -263,7 +269,7 @@ We are also able to give author and department recommendations based on the cita
 
                                                                                                 {'if': {'column_id': 'Recommended People 👩‍🔬👨‍🔬'},
                                                                                                  'width': '25%'},
-                                                                                                {'if': {'column_id': 'Affiliation 🏫'},
+                                                                                                {'if': {'column_id': 'Latest Affiliation 🏫'},
                                                                                                  'width': '55%'},
                                                                                                  {'if': {'column_id': 'Citations'},
 
@@ -272,27 +278,28 @@ We are also able to give author and department recommendations based on the cita
                                                                                                  {'if': {'column_id': 'Number of Papers'},
                                                                                                  'width': '12%'}
                                                                                             ]
-                                                                ),
-                                            dash_table.DataTable(
-                                                                    id='table3',
-                                                                    columns=[{"name": i, "id": i} for i in df3['columns']],
-                                                                    data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
-
-                                                                    style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
-                                                                    style_cell={'textAlign': 'left'},
-
-                                                                    style_data={'whiteSpace': 'normal','height': 'auto'},
-                                                                    style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto'},
-                                                                    style_cell_conditional=[
-
-                                                                                                {'if': {'column_id': 'Affiliation 🏫'},
-
-
-                                                                                                 'width': '85%'},
-                                                                                                {'if': {'column_id': 'Number of Papers'},
-                                                                                                 'width': '15%'}
-                                                                                            ]
                                                                 )
+                                                                #,
+                                            #dash_table.DataTable(
+                                            #                        id='table3',
+                                            #                        columns=[{"name": i, "id": i} for i in df3['columns']],
+                                            #                        data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
+
+                                            #                      style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
+                                             #                       style_cell={'textAlign': 'left'},
+
+                                              #                      style_data={'whiteSpace': 'normal','height': 'auto'},
+                                                                    #style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto'},
+                                                                    #style_cell_conditional=[
+
+                                                                                                #{'if': {'column_id': 'Affiliation 🏫'},
+
+
+                                                                                                 #'width': '85%'},
+                                                                                                #{'if': {'column_id': 'Number of Papers'},
+                                                                                                 #'width': '15%'}
+                                                                                            #]
+                                                                #)
 
                                             ], id='div_table_analytics'),
                                             html.H2(children='Citation graph of related papers', id='title_graph_div')]

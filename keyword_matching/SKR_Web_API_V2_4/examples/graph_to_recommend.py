@@ -2,6 +2,7 @@ import networkx as nx
 import pymysql
 import pandas as pd
 import numpy as np
+import datetime
 
 k_papers = 5 # how many papers to return
 k_people = 5 # how many people to return
@@ -46,7 +47,10 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
     top_k_papers = []
     papers_to_author = {}
     pmid_to_title = {}
+    pmid_to_time = {}
     for pmid, title, year, lastname, forename in articles.values:
+        pmid_to_time[pmid] = datetime.datetime.strptime(year, '%Y-%m-%d')
+        papers_to_author[title + ' ' + str(year)] = forename + ' ' + lastname
         papers_to_author[title + ' ' + str(year)] = forename + ' ' + lastname
         pmid_to_title[str(pmid)] = title + ' ' + str(year)
         if str(pmid) in top_k_papers_pmids:
@@ -74,8 +78,16 @@ def graph_to_recommend(graph, host, port, dbname, user, password):
     author_idx_to_name = {}
     affiliation_paper_count = {} # stores the number of papers for each affiliation
     author_latest_paper = {}
+    author_latest_time = {}
     for pmid, lastname, forname, idx, author_order, num_authors, affiliation in people.values:
-        authors_to_affiliation[forname + ' ' + lastname] = affiliation
+        name = forname + ' ' + lastname
+        if name not in author_latest_time:
+            authors_to_affiliation[name] = str(affiliation)
+            author_latest_time[name] = pmid_to_time[pmid]
+        else:
+            if pmid_to_time[pmid] > author_latest_time[name]:
+                authors_to_affiliation[name] = str(affiliation)
+                author_latest_time[name] = pmid_to_time[pmid]
         if pmid not in art:
             art[pmid] = True
             if affiliation not in affiliation_paper_count:
