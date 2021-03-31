@@ -14,11 +14,16 @@ user="jks17"
 password="password"
 nodes_graph_visualisation = 50
 
-def graph_to_recommend(graph, host, port, dbname, user, password):
+def graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password):
     print('entered')
 
     pagerank = nx.pagerank(graph)
-    pagerank_ordered = {k: v for k, v in sorted(pagerank.items(), key=lambda item: item[1], reverse = True)}
+    # update pagerank scores based on keyword count also
+    pagerank = nx.pagerank(graph)
+    pagerank_keywords = {}
+    for key in pagerank.keys():
+        pagerank_keywords[key] = pagerank[key]*dict_pmid_count_mesh[str(key)]
+    pagerank_ordered = {k: v for k, v in sorted(pagerank_keywords.items(), key=lambda item: item[1], reverse = True)}
     total_papers = 0
     print('did pagerank')
     #papers = np.load("pmid_all_keywords.npy")

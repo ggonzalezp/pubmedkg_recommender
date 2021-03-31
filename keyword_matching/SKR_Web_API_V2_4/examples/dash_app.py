@@ -128,16 +128,14 @@ html.P('''  We are also able to give author and department recommendations based
             my_file.close()
 
 
-
             print('getting graph')
-            #graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
-            #print('obtained graph')
-            #top_k_papers, top_k_people = graph_to_recommend(graph, host, port, dbname, user, password)
+            graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
+            print('obtained graph')
 
 
             # import pdb; pdb.set_trace()
-            graph = nx.read_gexf("test_graph_error.gexf")
-            top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, host, port, dbname, user, password)
+            #graph = nx.read_gexf("test_graph_error.gexf")
+            top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
             global title_to_pmid
             title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
             # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
