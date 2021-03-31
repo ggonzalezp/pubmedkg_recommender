@@ -22,7 +22,10 @@ def graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, pa
     pagerank = nx.pagerank(graph)
     pagerank_keywords = {}
     for key in pagerank.keys():
-        pagerank_keywords[key] = pagerank[key]*dict_pmid_count_mesh[str(key)]
+        if str(key) in dict_pmid_count_mesh:
+            pagerank_keywords[key] = pagerank[key]*dict_pmid_count_mesh[str(key)]
+        else:
+            pagerank_keywords[key] = pagerank[key]
     pagerank_ordered = {k: v for k, v in sorted(pagerank_keywords.items(), key=lambda item: item[1], reverse = True)}
     total_papers = 0
     print('did pagerank')

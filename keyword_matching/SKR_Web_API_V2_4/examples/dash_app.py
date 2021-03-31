@@ -116,6 +116,7 @@ html.P('''  We are also able to give author and department recommendations based
         
 
     @app.callback(Output('output_div', 'children'),
+    Output('Graph', 'style'),
     Output('Graph', 'figure'),
     [Input('submit-button', 'n_clicks')],
     [State('username', 'value')],
@@ -131,6 +132,7 @@ html.P('''  We are also able to give author and department recommendations based
             print('getting graph')
             graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
             print('obtained graph')
+            #dict_pmid_count_mesh = {}
 
 
             # import pdb; pdb.set_trace()
@@ -200,7 +202,7 @@ html.P('''  We are also able to give author and department recommendations based
 
             fig = go.Figure(data=[edge_trace, node_trace],
              layout=go.Layout(
-                # title='<br>Citation graph of related papers',
+                title='',
                 titlefont_size=16,
                 showlegend=False,
                 hovermode='closest',
@@ -213,14 +215,7 @@ html.P('''  We are also able to give author and department recommendations based
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
                 )
 
-
-
-            #top_k_papers = ['covid', 'test2', 'test3']
-            #top_k_people = ['Guada', 'Josh']
-            #affiliation_dict = {
-            #    'Guada': 'Imperial',
-            #    'Josh': 'Imperial'
-            #}
+            style = {'display':'block'}
 
 
             layout = [html.Div(children=[
@@ -300,28 +295,18 @@ html.P('''  We are also able to give author and department recommendations based
                                             ], id='div_table_analytics'),
                                             html.H2(children='Citation graph of related papers', id='title_graph_div')]
             
-            return layout, fig
+            return layout, style, fig
         else:
-            return [], go.Figure(data=[],
+            return [], {'display':'none'}, go.Figure(data=[],
              layout=go.Layout(
                 title='',
                 titlefont_size=16,
                 ))
 
-    #@app.callback(
-    #Output('selected-data', 'children'),
-    #[Input('Graph','selectedData')])
-    #def display_selected_data(selectedData):
-    #    num_of_nodes = len(selectedData['points'])
-    #    text = [html.P('Num of nodes selected: '+str(num_of_nodes))]
-    #    for x in selectedData['points']:
-    #        material = int(x['text'].split('<br>')[0][10:])
-    #        text.append(html.P(str(material)))
-    #return text
 
     @app.callback(
     Output('selected-data', 'children'),
-    [Input('Graph','selectedData')])
+    [Input('Graph','selectedData')],)
     def display_selected_data(selectedData):
         if selectedData:
             selectedData['points']
@@ -347,14 +332,15 @@ html.P('''  We are also able to give author and department recommendations based
         else:
             return None
 
-    @app.callback(Output('Graph', 'style'), 
-    [Input('submit-button', 'n_clicks')],
-    [State('username', 'value')],)
-    def update_output(clicks, input_value):
-        if clicks is not None:
-            return {'display':'block'}
-        else:
-            return {'display':'none'}
+    #@app.callback(Output('Graph', 'style'), 
+    #[Input('submit-button', 'n_clicks'),
+    #Input('submit-button', 'loading_state')],
+    #[State('username', 'value')],)
+    #def update_output(clicks, loading_state, input_value):
+    #    if clicks is not None and loading_state is not None:
+    #        return {'display':'block'}
+    #    else:
+    #        return {'display':'none'}
 
 
     
