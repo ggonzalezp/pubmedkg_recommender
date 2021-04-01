@@ -1,6 +1,12 @@
 
 # Pubmed Explorer
 
+![cover](workflow_figure.png)
+
+## About
+The PubMed explorer is designed to be a useful tool for promising students aiming to start a Ph.D. to explore new topics and to find a department and supervisor at the forefront of their field of interest. The tool provides a simple interface, whereby a user can input text or keywords. The input is then used to obtain the corresponding keywords and research field, and the most influential papers in the field as well information regarding 
+key authors and departments. In addition, a summary for each paper, computed using a Transfomer model operating on the paper's summary, is provided for the user to get an idea of each paper's content at a glance.
+Enhanced visualization is provided, optionally, whereby the user can visualize keywords and papers in a 2D space where distances are indicative of paper-paper and paper-keyword similarities.
 
 ## Installation
 
