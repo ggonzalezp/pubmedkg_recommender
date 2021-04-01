@@ -34,6 +34,7 @@ def run_get_graph():
                 descriptors.append(entry.split('|')[2])
 
     print('got descriptors')
+    print(descriptors)
 
     edges = pd.read_sql('''
         SELECT DISTINCT t.PMID, t.RefArticleId
@@ -72,6 +73,8 @@ def run_get_graph_2(): #using dictionaries with pre-processed data to facilitate
                 descriptors.append(entry.split('|')[2])
     t1 = time.time()
     print('got descriptors. Time: {:.2f} secs'.format(t1-t0))
+    for d in descriptors:
+        print(d)
 
     t0 = time.time()
     
@@ -102,6 +105,8 @@ def run_get_graph_2(): #using dictionaries with pre-processed data to facilitate
         if osp.isfile(osp.join(base_path, pmid + '.json')):
             inters = set(json.load(open(osp.join(base_path, '{}.json'.format(pmid)), 'r'))).intersection(pmids_with_mesh)
             if len(inters) == 0:
+                 print('{}/{}'.format(i, len(pmids_with_mesh)))
+                 i += 1
                  continue
             else:
                 pmids_refs = list(inters)
@@ -110,7 +115,7 @@ def run_get_graph_2(): #using dictionaries with pre-processed data to facilitate
         print('{}/{}'.format(i, len(pmids_with_mesh)))
         i += 1
 
-
+    # import pdb; pdb.set_trace()
     G=nx.Graph()
     for arr in tuples_edges:
         G.add_edge(int(arr[0]),int(arr[1]))
