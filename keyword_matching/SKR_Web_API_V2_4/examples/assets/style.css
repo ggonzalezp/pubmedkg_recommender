@@ -104,6 +104,19 @@ html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}
 
 }
 
+#submit-button-2{
+	  background-color: white;
+  border: ;
+  color: #a6a6a6;
+  padding: 8px 30px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-top: 10px;
+
+}
+
 
 
 
