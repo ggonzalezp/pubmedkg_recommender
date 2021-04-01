@@ -29,4 +29,4 @@ data = torch.load('dataset/het_graph_paper_mesh.pk')
 from utils import train_test_split_edges_relational
 data = train_test_split_edges_relational(data)
 
-torch.save(data, 'dataset/het_graph_paper_mesh_splitted.pk')
+torch.save(data, 'dataset/het_graph_paper_mesh_splitted_eval.pk')

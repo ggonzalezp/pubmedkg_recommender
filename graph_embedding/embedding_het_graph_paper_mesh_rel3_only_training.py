@@ -98,32 +98,23 @@ def train():
 	sort_indices = torch.argsort(train_neg_edge_type)
 	train_neg_edge_index = train_neg_edge_index[:, sort_indices]
 	train_neg_edge_type = train_neg_edge_type[sort_indices]
-
 	optimizer.zero_grad()
-
 	z = model.encode()
 	link_logits = model.decode(z, data.train_pos_edge_index, data.train_pos_edge_type, train_neg_edge_index, train_neg_edge_type)
 	link_labels = get_link_labels(data.train_pos_edge_index, train_neg_edge_index)
-
 	link_logits_paper_paper = model.decode(z, data.train_pos_edge_index[:, data.train_pos_edge_type == 0], data.train_pos_edge_type[data.train_pos_edge_type == 0], train_neg_edge_index[:, train_neg_edge_type ==0], train_neg_edge_type[train_neg_edge_type ==0])
 	link_logits_paper_mesh = model.decode(z,  data.train_pos_edge_index[:, data.train_pos_edge_type == 1], data.train_pos_edge_type[data.train_pos_edge_type == 1], train_neg_edge_index[:, train_neg_edge_type ==1], train_neg_edge_type[train_neg_edge_type ==1])
-	
 	link_labels_paper_paper = get_link_labels(data.train_pos_edge_index[:, data.train_pos_edge_type == 0], train_neg_edge_index[:, train_neg_edge_type ==0])
 	link_labels_paper_mesh = get_link_labels(data.train_pos_edge_index[:, data.train_pos_edge_type == 1], train_neg_edge_index[:, train_neg_edge_type ==1])
-
 	loss_paper_paper = F.binary_cross_entropy_with_logits(link_logits_paper_paper, link_labels_paper_paper)
 	loss_paper_mesh = F.binary_cross_entropy_with_logits(link_logits_paper_mesh, link_labels_paper_mesh)
-
 	loss = (1/2) * ((1 - alpha) * loss_paper_paper + alpha * loss_paper_mesh)
-
 	# loss = F.binary_cross_entropy_with_logits(link_logits, link_labels)
-
 	loss.backward()
 	optimizer.step()
 	link_probs = link_logits.sigmoid()
 	link_probs_paper_paper = link_logits_paper_paper.sigmoid()
 	link_probs_paper_mesh = link_logits_paper_mesh.sigmoid()
-
 	rocauc=roc_auc_score(link_labels.detach().cpu().numpy(), link_probs.detach().cpu().numpy())
 	roc_auc_pp=roc_auc_score(link_labels_paper_paper.detach().cpu().numpy(), link_probs_paper_paper.detach().cpu().numpy())
 	roc_auc_pm=roc_auc_score(link_labels_paper_mesh.detach().cpu().numpy(), link_probs_paper_mesh.detach().cpu().numpy())

@@ -82,7 +82,7 @@ def train_test_split_edges(data, val_ratio=0.05, test_ratio=0.1):
 
 #Adapted from torch_geometric to delete the mask creation and to support sampling edge-type dependent
 #https://pytorch-geometric.readthedocs.io/en/1.6.3/_modules/torch_geometric/utils/train_test_split_edges.html 
-def train_test_split_edges_relational(data, val_ratio=0, test_ratio=0):
+def train_test_split_edges_relational(data, val_ratio=0.05, test_ratio=0.1):
     r"""Splits the edges of a :obj:`torch_geometric.data.Data` object
     into positive and negative train/val/test edges, and adds attributes of
     `train_pos_edge_index`, `train_neg_adj_mask`, `val_pos_edge_index`,
