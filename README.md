@@ -37,7 +37,6 @@ The pubmed database is available [here](http://er.tacc.utexas.edu/datasets/ped).
 ## Usage
 
 ### Run dashboard locally
-.
 
 ```bash
 cd keyword_matching/SKR_Web_API_V2_4/examples
