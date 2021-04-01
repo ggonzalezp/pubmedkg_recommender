@@ -5,15 +5,17 @@ from dash.dependencies import Output, State, Input
 from test import run_get_graph_2
 import dash_table
 from graph_to_recommend import graph_to_recommend
+from embeddings_to_visualize import get_embeddings_to_visualize
 import os
 import networkx as nx
 import plotly.graph_objs as go
 from transformers import pipeline
 import pickle
-
+import time
 import torch
 import json
 
+import plotly.express as px
 # Initialize the HuggingFace summarization pipeline
 summarizer = pipeline("summarization")
 
@@ -64,55 +66,63 @@ if __name__ == '__main__':
     app.layout = html.Div([
         dcc.Tabs([
             dcc.Tab(label='Main', children=[
-                                html.Div(id="banner", children=[html.H1("PubMed knowledge graph explorer", id='title')],),
-                                html.Div(children=[
-                                                        html.H3(children='Introduce keywords or text:'),
-                                                        dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
-                                                        html.Button(id='submit-button', type='submit', children='Submit') 
+                                                html.Div(id="banner", children=[html.H1("PubMed knowledge graph explorer", id='title')],),
+                                                html.Div(children=[
+                                                                        html.H3(children='Introduce keywords or text:'),
+                                                                        dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
+                                                                        html.Button(id='submit-button', type='submit', children='Submit') 
 
-                                                    ], id='div_main'),
-    
-                                html.Div(id='output_div'),
-                                html.Div([dcc.Graph(id='Graph', figure=go.Figure(data=[],
-                                                                layout=go.Layout(
-                                                                title='',
-                                                                titlefont_size=16,
-                                                                )), style={"backgroundColor": "#F2F3F4", 'color': '#F2F3F4'}),
-                                                                #dcc.Graph(id='Graph', figure=None),
-                                                                html.Div(id='selected-data')
-                                            ], id='div_graph')
-                            
-                            ]),
+                                                                    ], id='div_main'),
+                    
+                                                html.Div(id='output_div'),
+                                                html.Div([dcc.Graph(id='Graph', figure=go.Figure(data=[],
+                                                                                layout=go.Layout(
+                                                                                title='',
+                                                                                titlefont_size=16,
+                                                                                )), style={"backgroundColor": "#F2F3F4", 'color': '#F2F3F4'}),
+                                                                                #dcc.Graph(id='Graph', figure=None),
+                                                                                html.Div(id='selected-data')
+                                                        ], id='div_graph'),
+                                                html.Div([dcc.Graph(id='Graph_Embeddings', figure=go.Figure(data=[],
+                                                                                layout=go.Layout(
+                                                                                title='',
+                                                                                titlefont_size=16,
+                                                                                )), style={"backgroundColor": "#F2F3F4", 'color': '#F2F3F4'})
+                                                        ], id='div_graph_embeddings'
+                                                    )
+                                            
+                                            ]),
             dcc.Tab(label='About', children=[
-            html.H2('Pubmed Graph Explorer'),
-            html.P(
-                         """
-The PubMed knowledge graph explorer is designed to be a useful tool for promising students to explore new topics and to find a department and supervisor 
-at the forefront of their field of interest. The tool provides a simple interface, whereby a user can input text or keywords as shown in Figure \ref{fig:input_box}. The input is then used to obtain paper recommendations for a specified topic as well as to get information regarding the 
-key authors and departments in the area.
-"""
-                           ),
-            html.H3('Extracting keywords and Querying the Database'),
-            html.P('''Mesh terms are extracted from the input using the MeSH on Demand API.'''),
-            html.H3('Creating the Citation Graph'),
-            html.P(''' The selected papers form a citation graph where edges between
-the paper nodes correspond to a reference. This citation graph is supplied interactively to the user. The user can hover
-over paper nodes to find their title; select clusters of nodes to which we list their common keywords as well as easily visualise which papers have the most connections in the citation graph.'''),
-html.H3('Paper Recommendations'),
-html.P(''' 
-We apply the page-rank algorithm on the citation graph in order to get the top k paper recommendations for the user. We additionally filter on these recommendations so that the suggested papers have the maximal number of corresponding keywords. The recommended papers are outlined to the user in a table format. We obtain the article summary by applying an implementation of the Bidirectional and Auto-Regressive Transformer to the paper's abstract. The model is implemented in the HuggingFace library and has been pre-trained on text summarization using the CNN/DailyMail summarization dataset.
-'''),
-html.H3('Author and Department Recommendations'),
-html.P('''
-We are also able to give author and department recommendations based on the citation graph. We introduce an author metric (number of citations x number of papers) and list the authors with the highest value of this metric in the graph. Additionally, we calculate the affiliations with the most number of papers in the graph. We provide the author recommendations and the most published affiliations to the user
-''')
-                    ])
+                                                html.H2('Pubmed Graph Explorer'),
+                                                html.P(
+                                                             """
+                                                                The PubMed knowledge graph explorer is designed to be a useful tool for promising students to explore new topics and to find a department and supervisor 
+                                                                at the forefront of their field of interest. The tool provides a simple interface, whereby a user can input text or keywords as shown in Figure \ref{fig:input_box}. The input is then used to obtain paper recommendations for a specified topic as well as to get information regarding the 
+                                                                key authors and departments in the area.
+                                                                """
+                                                               ),
+                                                html.H3('Extracting keywords and Querying the Database'),
+                                                html.P('''Mesh terms are extracted from the input using the MeSH on Demand API.'''),
+                                                html.H3('Creating the Citation Graph'),
+                                                html.P(''' The selected papers form a citation graph where edges between
+                                                        the paper nodes correspond to a reference. This citation graph is supplied interactively to the user. The user can hover
+                                                        over paper nodes to find their title; select clusters of nodes to which we list their common keywords as well as easily visualise which papers have the most connections in the citation graph.'''),
+                                                html.H3('Paper Recommendations'),
+                                                html.P(''' 
+                                                We apply the page-rank algorithm on the citation graph in order to get the top k paper recommendations for the user. We additionally filter on these recommendations so that the suggested papers have the maximal number of corresponding keywords. The recommended papers are outlined to the user in a table format. We obtain the article summary by applying an implementation of the Bidirectional and Auto-Regressive Transformer to the paper's abstract. The model is implemented in the HuggingFace library and has been pre-trained on text summarization using the CNN/DailyMail summarization dataset.
+                                                '''),
+                                                html.H3('Author and Department Recommendations'),
+                                                html.P('''
+                                                We are also able to give author and department recommendations based on the citation graph. We introduce an author metric (number of citations x number of papers) and list the authors with the highest value of this metric in the graph. Additionally, we calculate the affiliations with the most number of papers in the graph. We provide the author recommendations and the most published affiliations to the user
+                                                ''')
+                                            ])
         ])
     ])
         
 
     @app.callback(Output('output_div', 'children'),
     Output('Graph', 'figure'),
+    Output('Graph_Embeddings', 'figure'),
     [Input('submit-button', 'n_clicks')],
     [State('username', 'value')],
                      
@@ -126,7 +136,11 @@ We are also able to give author and department recommendations based on the cita
 
 
             print('getting graph')
+            ################
+            #COMPUTATIONS
+            ################
             graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
+            get_embeddings_to_visualize(descriptors, dict_pmid_count_mesh)
             #print('obtained graph')
             #top_k_papers, top_k_people = graph_to_recommend(graph, host, port, dbname, user, password)
 
@@ -139,13 +153,10 @@ We are also able to give author and department recommendations based on the cita
             # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
             sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
 
-                        # # get precomputed sentences
-            # sentences = {}
-            # for idx in top_k_papers_pmids:
-            #     sentences[idx] = pmid_to_sentence[idx]
 
-
-
+            #################
+            #CITATION NETWORK
+            ##################
             #get a x,y position for each node
             pos = nx.layout.spring_layout(graph)
 
@@ -174,7 +185,7 @@ We are also able to give author and department recommendations based on the cita
                 colorscale='YlGnBu',
                 reversescale=True,
                 color=[],
-                size=10,
+                size=20,
                 colorbar=dict(
                     thickness=15,
                     title='Node Connections',
@@ -198,7 +209,6 @@ We are also able to give author and department recommendations based on the cita
 
             fig = go.Figure(data=[edge_trace, node_trace],
              layout=go.Layout(
-                # title='<br>Citation graph of related papers',
                 titlefont_size=16,
                 showlegend=False,
                 hovermode='closest',
@@ -210,16 +220,53 @@ We are also able to give author and department recommendations based on the cita
                 xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
                 )
+            fig.update_layout(
+                hoverlabel=dict(
+                    bgcolor="white",
+                    font_size=16,
+                    font_family="Roboto"
+                ))
+
+            #################
+            #EMBEDDING VISUALIZATION
+            ##################
+            t0 = time.time()
+            emb = get_embeddings_to_visualize(descriptors, dict_pmid_count_mesh)
+            t1 = time.time()
+            print('got embeddings: {} secs'.format(t1-t0))
+
+            fig_emb = px.scatter(emb,
+                                        x='x',
+                                        y='y',
+                                        color='Node type',
+                                        opacity=0.8,
+                                        hover_data={'x':False,
+                                                    'y':False,
+                                                    'Name': True
+                                        }
+                                    )
+
+
+            fig_emb.update_layout(
+                hoverlabel=dict(
+                    bgcolor="white",
+                    font_size=16,
+                    font_family="Roboto"
+                ),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+            )
+
+            fig_emb.update_traces(marker=dict(size=30),
+                              selector=dict(mode='markers'))
 
 
 
-            #top_k_papers = ['covid', 'test2', 'test3']
-            #top_k_people = ['Guada', 'Josh']
-            #affiliation_dict = {
-            #    'Guada': 'Imperial',
-            #    'Josh': 'Imperial'
-            #}
 
+
+            #################
+            #TABLES WITH DATA
+            ##################
 
             layout = [html.Div(children=[
 
@@ -296,10 +343,15 @@ We are also able to give author and department recommendations based on the cita
 
                                             ], id='div_table_analytics'),
                                             html.H2(children='Citation graph of related papers', id='title_graph_div')]
+
             
-            return layout, fig
+            return layout, fig, fig_emb
         else:
             return [], go.Figure(data=[],
+             layout=go.Layout(
+                title='',
+                titlefont_size=16,
+                )), go.Figure(data=[],
              layout=go.Layout(
                 title='',
                 titlefont_size=16,
@@ -353,6 +405,14 @@ We are also able to give author and department recommendations based on the cita
         else:
             return {'display':'none'}
 
+    @app.callback(Output('Graph_Embeddings', 'style'), 
+    [Input('submit-button', 'n_clicks')],
+    [State('username', 'value')],)
+    def update_output(clicks, input_value):
+        if clicks is not None:
+            return {'display':'block'}
+        else:
+            return {'display':'none'}
 
     
 
