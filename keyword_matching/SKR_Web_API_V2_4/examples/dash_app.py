@@ -66,11 +66,12 @@ if __name__ == '__main__':
     app.layout = html.Div([
         dcc.Tabs([
             dcc.Tab(label='Main', children=[
-                                                html.Div(id="banner", children=[html.H1("PubMed knowledge graph explorer", id='title')],),
+                                                html.Div(id="banner", children=[html.H1("PubMed Explorer", id='title')],),
                                                 html.Div(children=[
                                                                         html.H3(children='Introduce keywords or text:'),
                                                                         dcc.Textarea(id='username', value='', style={'width': '100%', 'height': 200}),
-                                                                        html.Button(id='submit-button', type='submit', children='Submit') 
+                                                                        html.Button(id='submit-button', type='submit', children='Get recommendations'),
+                                                                        html.Button(id='submit-button-2', type='submit', children='Get recommendations and embeddings')
 
                                                                     ], id='div_main'),
                     
@@ -131,241 +132,448 @@ if __name__ == '__main__':
     Output('Graph', 'style'),
     Output('Graph', 'figure'),
     Output('Graph_Embeddings', 'figure'),
-    [Input('submit-button', 'n_clicks')],
+    Output('Graph_Embeddings', 'style'),
+    Input('submit-button', 'n_clicks'),
+    Input('submit-button-2', 'n_clicks'),
     [State('username', 'value')],
                      
                                                                         )
-    def update_output(clicks, input_value):
-        if clicks is not None:
+    def update_output(clicks, clicks2, input_value):
+        ctx = dash.callback_context
+        if (clicks is not None) or (clicks2 is not None):
             my_file = open("test.txt","w+")
             my_file.write(input_value)
             my_file.close()
+            button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+            print(button_id)
+
+            if button_id == 'submit-button':
+                print('selected first submit button')
+                print('getting graph')
+                ################
+                #COMPUTATIONS
+                ################
+                graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
+                print('obtained graph')
 
 
-            print('getting graph')
-            ################
-            #COMPUTATIONS
-            ################
-            graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
-            print('obtained graph')
+                # import pdb; pdb.set_trace()
+                graph = nx.read_gexf("test_graph.gexf")
+                top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
+                global title_to_pmid
+                title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
+                # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
+                sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
 
 
-            # import pdb; pdb.set_trace()
-            graph = nx.read_gexf("test_graph.gexf")
-            top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
-            global title_to_pmid
-            title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
-            # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
-            sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
+                #################
+                #CITATION NETWORK
+                ##################
+                #get a x,y position for each node
+                pos = nx.layout.spring_layout(graph)
 
+                #Create Edges
+                edge_trace = go.Scatter(
+                    x=[],
+                    y=[],
+                    line=dict(width=0.5,color='#888'),
+                    hoverinfo='none',
+                    mode='lines')
+                
+                for edge in graph.edges():
+                    x0, y0 = pos[graph.nodes[edge[0]]['label']]
+                    x1, y1 = pos[graph.nodes[edge[1]]['label']]
+                    edge_trace['x'] += tuple([x0, x1, None])
+                    edge_trace['y'] += tuple([y0, y1, None])
 
-            #################
-            #CITATION NETWORK
-            ##################
-            #get a x,y position for each node
-            pos = nx.layout.spring_layout(graph)
-
-            #Create Edges
-            edge_trace = go.Scatter(
+                node_trace = go.Scatter(
                 x=[],
                 y=[],
-                line=dict(width=0.5,color='#888'),
-                hoverinfo='none',
-                mode='lines')
-            
-            for edge in graph.edges():
-                x0, y0 = pos[graph.nodes[edge[0]]['label']]
-                x1, y1 = pos[graph.nodes[edge[1]]['label']]
-                edge_trace['x'] += tuple([x0, x1, None])
-                edge_trace['y'] += tuple([y0, y1, None])
+                text=[],
+                mode='markers',
+                hoverinfo='text',
+                marker=dict(
+                    showscale=True,
+                    colorscale='YlGnBu',
+                    reversescale=True,
+                    color=[],
+                    size=20,
+                    colorbar=dict(
+                        thickness=15,
+                        title='Node Connections',
+                        xanchor='left',
+                        titleside='right'
+                    ),  
+                    line=dict(width=2)))
+                for node in graph.nodes():
+                    x, y = pos[graph.nodes[node]['label']]
+                    node_trace['x'] += tuple([x])
+                    node_trace['y'] += tuple([y])
 
-            node_trace = go.Scatter(
-            x=[],
-            y=[],
-            text=[],
-            mode='markers',
-            hoverinfo='text',
-            marker=dict(
-                showscale=True,
-                colorscale='YlGnBu',
-                reversescale=True,
-                color=[],
-                size=20,
-                colorbar=dict(
-                    thickness=15,
-                    title='Node Connections',
-                    xanchor='left',
-                    titleside='right'
-                ),  
-                line=dict(width=2)))
-            for node in graph.nodes():
-                x, y = pos[graph.nodes[node]['label']]
-                node_trace['x'] += tuple([x])
-                node_trace['y'] += tuple([y])
+                #add color to node points
+                for node, adjacencies in enumerate(graph.adjacency()):
+                    node_trace['marker']['color']+=tuple([len(adjacencies[1])])
+                    if str(adjacencies[0]) in pmid_to_title:
+                        node_info =  pmid_to_title[str(adjacencies[0])] + '<br># of connections: '+str(len(adjacencies[1]))
+                    else:
+                        node_info =  str(adjacencies[0]) + '<br># of connections: '+str(len(adjacencies[1]))
+                    node_trace['text']+=tuple([node_info])
 
-            #add color to node points
-            for node, adjacencies in enumerate(graph.adjacency()):
-                node_trace['marker']['color']+=tuple([len(adjacencies[1])])
-                if str(adjacencies[0]) in pmid_to_title:
-                    node_info =  pmid_to_title[str(adjacencies[0])] + '<br># of connections: '+str(len(adjacencies[1]))
-                else:
-                    node_info =  str(adjacencies[0]) + '<br># of connections: '+str(len(adjacencies[1]))
-                node_trace['text']+=tuple([node_info])
+                fig = go.Figure(data=[edge_trace, node_trace],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    showlegend=False,
+                    hovermode='closest',
+                    margin=dict(b=20,l=5,r=5,t=40),
+                    annotations=[ dict(
+                        showarrow=False,
+                        xref="paper", yref="paper",
+                        x=0.005, y=-0.002 ) ],
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+                    )
+                fig.update_layout(
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=16,
+                        font_family="Roboto"
+                    ))
 
-            fig = go.Figure(data=[edge_trace, node_trace],
-             layout=go.Layout(
-                title='',
-                titlefont_size=16,
-                showlegend=False,
-                hovermode='closest',
-                margin=dict(b=20,l=5,r=5,t=40),
-                annotations=[ dict(
-                    showarrow=False,
-                    xref="paper", yref="paper",
-                    x=0.005, y=-0.002 ) ],
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+
+
+                style = {'display':'block'}
+    
+
+
+
+
+                #################
+                #TABLES WITH DATA
+                ##################
+
+                layout = [html.Div(children=[
+
+                    html.H2(children='Recommendations', id='title_rec'),
+
+                                                dash_table.DataTable(
+                                                                        id='table1',
+                                                                        columns=[{"name": i, "id": i} for i in df1['columns']],
+                                                                        data=[{'Recommended Papers 📄': x[0:-6], 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x], 'Article Summary':sentences[title_to_pmid[x]]} for x in top_k_papers],
+
+                                                                        style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
+                                                                        style_cell={'textAlign': 'left'},
+
+                                                                        style_data={'whiteSpace': 'pre-wrap','height': 'auto'},
+                                                                        style_table={"margin-top": "25px", 'whiteSpace': 'normal', 'height': 'auto'},
+                                                                        style_cell_conditional=[
+
+                                                                                                    {'if': {'column_id': 'Recommended Papers 📄'},
+                                                                                                    'width': '50%'},
+                                                                                                    {'if': {'column_id': 'PMID'},
+
+
+                                                                                                    'width': '5%'},
+                                                                                                    {'if': {'column_id': 'Last Author'},
+                                                                                                    'width': '10%'},
+                                                                                                    {'if': {'column_id': 'Article Summary'},
+                                                                                                    'width': '35%'}
+                                                                                                ]
+                                                                    ),
+
+                                                dash_table.DataTable(
+                                                                        id='table2',
+                                                                        columns=[{"name": i, "id": i} for i in df2['columns']],
+                                                                        data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Latest Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
+                                                                        style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink', 'whiteSpace': 'normal','height': 'auto'},
+                                                                        style_cell={'textAlign': 'left'},
+
+                                                                        style_data={'whiteSpace': 'normal','height': 'auto'},
+                                                                        style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto', 'align': 'center'},
+                                                                        style_cell_conditional=[
+
+                                                                                                    {'if': {'column_id': 'Recommended People 👩‍🔬👨‍🔬'},
+                                                                                                    'width': '25%'},
+                                                                                                    {'if': {'column_id': 'Latest Affiliation 🏫'},
+                                                                                                    'width': '55%'},
+                                                                                                    {'if': {'column_id': 'Citations'},
+
+
+                                                                                                    'width': '8%'},
+                                                                                                    {'if': {'column_id': 'Number of Papers'},
+                                                                                                    'width': '12%'}
+                                                                                                ]
+                                                                    )
+                                                                    #,
+                                                #dash_table.DataTable(
+                                                #                        id='table3',
+                                                #                        columns=[{"name": i, "id": i} for i in df3['columns']],
+                                                #                        data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
+
+                                                #                      style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
+                                                #                       style_cell={'textAlign': 'left'},
+
+                                                #                      style_data={'whiteSpace': 'normal','height': 'auto'},
+                                                                        #style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto'},
+                                                                        #style_cell_conditional=[
+
+                                                                                                    #{'if': {'column_id': 'Affiliation 🏫'},
+
+
+                                                                                                    #'width': '85%'},
+                                                                                                    #{'if': {'column_id': 'Number of Papers'},
+                                                                                                    #'width': '15%'}
+                                                                                                #]
+                                                                    #)
+
+                                                ], id='div_table_analytics'),
+                                                html.H2(children='Citation graph of related papers', id='title_graph_div')]
+
+                
+                return layout, style, fig, go.Figure(data=[],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    )), {'display':'none'}
+
+            elif button_id == 'submit-button-2':
+                print('selected second submit button')
+                print('getting graph')
+                ################
+                #COMPUTATIONS
+                ################
+                graph, descriptors, dict_pmid_count_mesh = run_get_graph_2()
+                print('obtained graph')
+
+
+                # import pdb; pdb.set_trace()
+                graph = nx.read_gexf("test_graph.gexf")
+                top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
+                title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
+                # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
+                sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
+
+
+                #################
+                #CITATION NETWORK
+                ##################
+                #get a x,y position for each node
+                pos = nx.layout.spring_layout(graph)
+
+                #Create Edges
+                edge_trace = go.Scatter(
+                    x=[],
+                    y=[],
+                    line=dict(width=0.5,color='#888'),
+                    hoverinfo='none',
+                    mode='lines')
+                
+                for edge in graph.edges():
+                    x0, y0 = pos[graph.nodes[edge[0]]['label']]
+                    x1, y1 = pos[graph.nodes[edge[1]]['label']]
+                    edge_trace['x'] += tuple([x0, x1, None])
+                    edge_trace['y'] += tuple([y0, y1, None])
+
+                node_trace = go.Scatter(
+                x=[],
+                y=[],
+                text=[],
+                mode='markers',
+                hoverinfo='text',
+                marker=dict(
+                    showscale=True,
+                    colorscale='YlGnBu',
+                    reversescale=True,
+                    color=[],
+                    size=20,
+                    colorbar=dict(
+                        thickness=15,
+                        title='Node Connections',
+                        xanchor='left',
+                        titleside='right'
+                    ),  
+                    line=dict(width=2)))
+                for node in graph.nodes():
+                    x, y = pos[graph.nodes[node]['label']]
+                    node_trace['x'] += tuple([x])
+                    node_trace['y'] += tuple([y])
+
+                #add color to node points
+                for node, adjacencies in enumerate(graph.adjacency()):
+                    node_trace['marker']['color']+=tuple([len(adjacencies[1])])
+                    if str(adjacencies[0]) in pmid_to_title:
+                        node_info =  pmid_to_title[str(adjacencies[0])] + '<br># of connections: '+str(len(adjacencies[1]))
+                    else:
+                        node_info =  str(adjacencies[0]) + '<br># of connections: '+str(len(adjacencies[1]))
+                    node_trace['text']+=tuple([node_info])
+
+                fig = go.Figure(data=[edge_trace, node_trace],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    showlegend=False,
+                    hovermode='closest',
+                    margin=dict(b=20,l=5,r=5,t=40),
+                    annotations=[ dict(
+                        showarrow=False,
+                        xref="paper", yref="paper",
+                        x=0.005, y=-0.002 ) ],
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+                    )
+                fig.update_layout(
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=16,
+                        font_family="Roboto"
+                    ))
+
+                #################
+                #EMBEDDING VISUALIZATION
+                ##################
+                t0 = time.time()
+                emb = get_embeddings_to_visualize(descriptors, dict_pmid_count_mesh)
+                t1 = time.time()
+                print('got embeddings: {} secs'.format(t1-t0))
+
+                fig_emb = px.scatter(emb,
+                                            x='x',
+                                            y='y',
+                                            color='Node type',
+                                            opacity=0.8,
+                                            hover_data={'x':False,
+                                                        'y':False,
+                                                        'Name': True
+                                            }
+                                        )
+
+
+                fig_emb.update_layout(
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=16,
+                        font_family="Roboto"
+                    ),
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
                 )
-            fig.update_layout(
-                hoverlabel=dict(
-                    bgcolor="white",
-                    font_size=16,
-                    font_family="Roboto"
-                ))
 
-            #################
-            #EMBEDDING VISUALIZATION
-            ##################
-            t0 = time.time()
-            emb = get_embeddings_to_visualize(descriptors, dict_pmid_count_mesh)
-            t1 = time.time()
-            print('got embeddings: {} secs'.format(t1-t0))
-
-            fig_emb = px.scatter(emb,
-                                        x='x',
-                                        y='y',
-                                        color='Node type',
-                                        opacity=0.8,
-                                        hover_data={'x':False,
-                                                    'y':False,
-                                                    'Name': True
-                                        }
-                                    )
+                fig_emb.update_traces(marker=dict(size=30),
+                                selector=dict(mode='markers'))
 
 
-            fig_emb.update_layout(
-                hoverlabel=dict(
-                    bgcolor="white",
-                    font_size=16,
-                    font_family="Roboto"
-                ),
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
-            )
-
-            fig_emb.update_traces(marker=dict(size=30),
-                              selector=dict(mode='markers'))
-
-
-            style = {'display':'block'}
+                style = {'display':'block'}
+                style_emb = {'display':'block'}
 
 
 
 
-            #################
-            #TABLES WITH DATA
-            ##################
+                #################
+                #TABLES WITH DATA
+                ##################
 
-            layout = [html.Div(children=[
+                layout = [html.Div(children=[
 
-                html.H2(children='Recommendations', id='title_rec'),
+                    html.H2(children='Recommendations', id='title_rec'),
 
-                                            dash_table.DataTable(
-                                                                    id='table1',
-                                                                    columns=[{"name": i, "id": i} for i in df1['columns']],
-                                                                    data=[{'Recommended Papers 📄': x[0:-6], 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x], 'Article Summary':sentences[title_to_pmid[x]]} for x in top_k_papers],
+                                                dash_table.DataTable(
+                                                                        id='table1',
+                                                                        columns=[{"name": i, "id": i} for i in df1['columns']],
+                                                                        data=[{'Recommended Papers 📄': x[0:-6], 'PMID': title_to_pmid[x], 'Last Author': papers_to_author[x], 'Article Summary':sentences[title_to_pmid[x]]} for x in top_k_papers],
 
-                                                                    style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
-                                                                    style_cell={'textAlign': 'left'},
+                                                                        style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
+                                                                        style_cell={'textAlign': 'left'},
 
-                                                                    style_data={'whiteSpace': 'pre-wrap','height': 'auto'},
-                                                                    style_table={"margin-top": "25px", 'whiteSpace': 'normal', 'height': 'auto'},
-                                                                    style_cell_conditional=[
+                                                                        style_data={'whiteSpace': 'pre-wrap','height': 'auto'},
+                                                                        style_table={"margin-top": "25px", 'whiteSpace': 'normal', 'height': 'auto'},
+                                                                        style_cell_conditional=[
 
-                                                                                                {'if': {'column_id': 'Recommended Papers 📄'},
-                                                                                                 'width': '50%'},
-                                                                                                {'if': {'column_id': 'PMID'},
-
-
-                                                                                                 'width': '5%'},
-                                                                                                 {'if': {'column_id': 'Last Author'},
-                                                                                                 'width': '10%'},
-                                                                                                 {'if': {'column_id': 'Article Summary'},
-                                                                                                 'width': '35%'}
-                                                                                            ]
-                                                                ),
-
-                                            dash_table.DataTable(
-                                                                    id='table2',
-                                                                    columns=[{"name": i, "id": i} for i in df2['columns']],
-                                                                    data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Latest Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
-                                                                    style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink', 'whiteSpace': 'normal','height': 'auto'},
-                                                                    style_cell={'textAlign': 'left'},
-
-                                                                    style_data={'whiteSpace': 'normal','height': 'auto'},
-                                                                    style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto', 'align': 'center'},
-                                                                    style_cell_conditional=[
-
-                                                                                                {'if': {'column_id': 'Recommended People 👩‍🔬👨‍🔬'},
-                                                                                                 'width': '25%'},
-                                                                                                {'if': {'column_id': 'Latest Affiliation 🏫'},
-                                                                                                 'width': '55%'},
-                                                                                                 {'if': {'column_id': 'Citations'},
+                                                                                                    {'if': {'column_id': 'Recommended Papers 📄'},
+                                                                                                    'width': '50%'},
+                                                                                                    {'if': {'column_id': 'PMID'},
 
 
-                                                                                                 'width': '8%'},
-                                                                                                 {'if': {'column_id': 'Number of Papers'},
-                                                                                                 'width': '12%'}
-                                                                                            ]
-                                                                )
-                                                                #,
-                                            #dash_table.DataTable(
-                                            #                        id='table3',
-                                            #                        columns=[{"name": i, "id": i} for i in df3['columns']],
-                                            #                        data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
+                                                                                                    'width': '5%'},
+                                                                                                    {'if': {'column_id': 'Last Author'},
+                                                                                                    'width': '10%'},
+                                                                                                    {'if': {'column_id': 'Article Summary'},
+                                                                                                    'width': '35%'}
+                                                                                                ]
+                                                                    ),
 
-                                            #                      style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
-                                             #                       style_cell={'textAlign': 'left'},
+                                                dash_table.DataTable(
+                                                                        id='table2',
+                                                                        columns=[{"name": i, "id": i} for i in df2['columns']],
+                                                                        data=[{'Recommended People 👩‍🔬👨‍🔬': x, 'Latest Affiliation 🏫': authors_to_affiliation[x], 'Citations': citation_dict[top_k_people_ids[idx]], 'Number of Papers': number_papers_dict[top_k_people_ids[idx]]} for idx, x in enumerate(top_k_people)],
+                                                                        style_header={'backgroundColor': '#f2f2f2', 'textColor':'pink', 'whiteSpace': 'normal','height': 'auto'},
+                                                                        style_cell={'textAlign': 'left'},
 
-                                              #                      style_data={'whiteSpace': 'normal','height': 'auto'},
-                                                                    #style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto'},
-                                                                    #style_cell_conditional=[
+                                                                        style_data={'whiteSpace': 'normal','height': 'auto'},
+                                                                        style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto', 'align': 'center'},
+                                                                        style_cell_conditional=[
 
-                                                                                                #{'if': {'column_id': 'Affiliation 🏫'},
+                                                                                                    {'if': {'column_id': 'Recommended People 👩‍🔬👨‍🔬'},
+                                                                                                    'width': '25%'},
+                                                                                                    {'if': {'column_id': 'Latest Affiliation 🏫'},
+                                                                                                    'width': '55%'},
+                                                                                                    {'if': {'column_id': 'Citations'},
 
 
-                                                                                                 #'width': '85%'},
-                                                                                                #{'if': {'column_id': 'Number of Papers'},
-                                                                                                 #'width': '15%'}
-                                                                                            #]
-                                                                #)
+                                                                                                    'width': '8%'},
+                                                                                                    {'if': {'column_id': 'Number of Papers'},
+                                                                                                    'width': '12%'}
+                                                                                                ]
+                                                                    )
+                                                                    #,
+                                                #dash_table.DataTable(
+                                                #                        id='table3',
+                                                #                        columns=[{"name": i, "id": i} for i in df3['columns']],
+                                                #                        data=[{'Affiliation 🏫': key, 'Number of Papers': affiliation_paper_count[key]} for key in affiliation_paper_count.keys()],
 
-                                            ], id='div_table_analytics'),
-                                            html.H2(children='Citation graph of related papers', id='title_graph_div')]
+                                                #                      style_header={'backgroundColor': '#f2f2f2', 'whiteSpace': 'normal','height': 'auto'},
+                                                #                       style_cell={'textAlign': 'left'},
 
-            
+                                                #                      style_data={'whiteSpace': 'normal','height': 'auto'},
+                                                                        #style_table={"margin-top": "40px", 'whiteSpace': 'normal', 'height': 'auto'},
+                                                                        #style_cell_conditional=[
 
-            return layout, style, fig, fig_emb
+                                                                                                    #{'if': {'column_id': 'Affiliation 🏫'},
+
+
+                                                                                                    #'width': '85%'},
+                                                                                                    #{'if': {'column_id': 'Number of Papers'},
+                                                                                                    #'width': '15%'}
+                                                                                                #]
+                                                                    #)
+
+                                                ], id='div_table_analytics'),
+                                                html.H2(children='Citation graph of related papers', id='title_graph_div')]
+
+                
+
+                return layout, style, fig, fig_emb, style_emb
+
+            else:
+                return [], {'display':'none'}, go.Figure(data=[],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    )), go.Figure(data=[],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    )), {'display':'none'}
         else:
-            return [], {'display':'none'}, go.Figure(data=[],
-             layout=go.Layout(
-                title='',
-                titlefont_size=16,
-                )), go.Figure(data=[],
-             layout=go.Layout(
-                title='',
-                titlefont_size=16,
-                ))
+                return [], {'display':'none'}, go.Figure(data=[],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    )), go.Figure(data=[],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    )), {'display':'none'}
 
 
     @app.callback(
@@ -375,7 +583,6 @@ if __name__ == '__main__':
         if selectedData:
             selectedData['points']
             num_of_nodes = len(selectedData['points'])
-            #text = [html.P('Num of nodes selected: '+str(num_of_nodes))]
             text = []
             pmids = []
             for x in selectedData['points']:
@@ -396,24 +603,6 @@ if __name__ == '__main__':
         else:
             return None
 
-    #@app.callback(Output('Graph', 'style'), 
-    #[Input('submit-button', 'n_clicks'),
-    #Input('submit-button', 'loading_state')],
-    #[State('username', 'value')],)
-    #def update_output(clicks, loading_state, input_value):
-    #    if clicks is not None and loading_state is not None:
-    #        return {'display':'block'}
-    #    else:
-    #        return {'display':'none'}
-
-    @app.callback(Output('Graph_Embeddings', 'style'), 
-    [Input('submit-button', 'n_clicks')],
-    [State('username', 'value')],)
-    def update_output(clicks, input_value):
-        if clicks is not None:
-            return {'display':'block'}
-        else:
-            return {'display':'none'}
 
     
 
