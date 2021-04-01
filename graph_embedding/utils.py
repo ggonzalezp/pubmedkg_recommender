@@ -79,148 +79,10 @@ def train_test_split_edges(data, val_ratio=0.05, test_ratio=0.1):
     return data
 
 
-# def get_neg_iteratively(row, col, num_papers,  num_mesh, n_samples):
-#     neg_row = []
-#     neg_col = []
-#     while len(neg_row) < n_samples:
-#         candidate_row, candidate_col = random.randrange(num_papers), random.randrange(num_mesh)
-#         if candidate_row not in row and candidate_col not in col:
-#             neg_row.append(candidate_row)
-#             neg_col.append(candidate_col)
-#     return torch.tensor(neg_row), torch.tensor(neg_col)
-
-
-
-
-# #Adapted from torch_geometric to delete the mask creation and to support sampling edge-type dependent
-# #https://pytorch-geometric.readthedocs.io/en/1.6.3/_modules/torch_geometric/utils/train_test_split_edges.html 
-# def train_test_split_edges_relational(data, val_ratio=0.05, test_ratio=0.1):
-#     r"""Splits the edges of a :obj:`torch_geometric.data.Data` object
-#     into positive and negative train/val/test edges, and adds attributes of
-#     `train_pos_edge_index`, `train_neg_adj_mask`, `val_pos_edge_index`,
-#     `val_neg_edge_index`, `test_pos_edge_index`, and `test_neg_edge_index`
-#     to :attr:`data`.
-
-#     Args:
-#         data (Data): The data object.
-#         val_ratio (float, optional): The ratio of positive validation
-#             edges. (default: :obj:`0.05`)
-#         test_ratio (float, optional): The ratio of positive test
-#             edges. (default: :obj:`0.1`)
-
-#     :rtype: :class:`torch_geometric.data.Data`
-#     """
-
-#     assert 'batch' not in data  # No batch-mode.
-
-#     #######
-#     #Type 0 - paper - paper
-#     #######
-#     num_papers = data.x_paper.size(0)
-#     edge_index_papers = data.edge_index[:, data.edge_type == 0]
-#     row, col = edge_index_papers
-
-#     n_v = int(math.floor(val_ratio * row.size(0)))
-#     n_t = int(math.floor(test_ratio * row.size(0)))
-
-#     # Positive edges.
-#     perm = torch.randperm(row.size(0))
-#     row, col = row[perm], col[perm]
-
-#     r, c = row[:n_v], col[:n_v]
-#     val_pos_edge_index_paper_paper = torch.stack([r, c], dim=0)
-#     r, c = row[n_v:n_v + n_t], col[n_v:n_v + n_t]
-#     test_pos_edge_index_paper_paper = torch.stack([r, c], dim=0)
-
-#     r, c = row[n_v + n_t:], col[n_v + n_t:]
-#     train_pos_edge_index_paper_paper = torch.stack([r, c], dim=0)
-#     train_pos_edge_index_paper_paper = to_undirected(train_pos_edge_index_paper_paper)
-
-#     #Negative edges
-#     neg_row, neg_col = negative_sampling(edge_index_papers, num_nodes = num_papers, num_neg_samples=n_v+n_t, force_undirected=False)
-
-#     row, col = neg_row[:n_v], neg_col[:n_v]
-#     val_neg_edge_index_paper_paper = torch.stack([row, col], dim=0)
-
-#     row, col = neg_row[n_v:n_v + n_t], neg_col[n_v:n_v + n_t]
-#     test_neg_edge_index_paper_paper = torch.stack([row, col], dim=0)
-
-#     #######
-#     #Type 1 - paper - mesh
-#     #######
-#     num_mesh = data.x_mesh.size(0)
-#     edge_index_mesh = data.edge_index[:, data.edge_type == 1]
-#     row, col = edge_index_mesh
-
-
-#     n_v = int(math.floor(val_ratio * row.size(0)))
-#     n_t = int(math.floor(test_ratio * row.size(0)))
-
-#     # Positive edges.
-#     perm = torch.randperm(row.size(0))
-#     row, col = row[perm], col[perm]
-
-#     r, c = row[:n_v], col[:n_v]
-#     val_pos_edge_index_paper_mesh = torch.stack([r, c], dim=0)
-#     r, c = row[n_v:n_v + n_t], col[n_v:n_v + n_t]
-#     test_pos_edge_index_paper_mesh = torch.stack([r, c], dim=0)
-
-#     r, c = row[n_v + n_t:], col[n_v + n_t:]
-#     train_pos_edge_index_paper_mesh = torch.stack([r, c], dim=0)
-#     train_pos_edge_index_paper_mesh = to_undirected(train_pos_edge_index_paper_mesh)
-
-#     #Negative edges
-
-#     neg_row, neg_col = get_neg_iteratively(row, col - num_papers, num_papers,  num_mesh, n_samples = n_v + n_t)
-#     neg_col += num_papers
-
-
-#     # neg_adj_mask = torch.ones(num_papers, num_mesh, dtype=torch.uint8) # matrix of npapers x nmesh
-#     # neg_adj_mask[row, col - num_papers] = 0 #correction for index number of mesh nodes
-
-#     # neg_row, neg_col = neg_adj_mask.nonzero(as_tuple=False).t()
-#     # neg_col = neg_col + num_papers
-#     perm = torch.randperm(neg_row.size(0))[:n_v + n_t]
-#     neg_row, neg_col = neg_row[perm], neg_col[perm]
-
-#     row, col = neg_row[:n_v], neg_col[:n_v]
-#     val_neg_edge_index_paper_mesh = torch.stack([row, col], dim=0)
-
-#     row, col = neg_row[n_v:n_v + n_t], neg_col[n_v:n_v + n_t]
-#     test_neg_edge_index_paper_mesh = torch.stack([row, col], dim=0)    
-
-
-
-
-#     ##Joining edges
-#     data.train_pos_edge_index = torch.cat([train_pos_edge_index_paper_paper, train_pos_edge_index_paper_mesh], 1)
-#     data.train_pos_edge_type = torch.cat([torch.zeros(train_pos_edge_index_paper_paper.size(1)), torch.ones(train_pos_edge_index_paper_mesh.size(1))], 0)
-
-#     data.val_pos_edge_index = torch.cat([val_pos_edge_index_paper_paper, val_pos_edge_index_paper_mesh], 1)
-#     data.val_pos_edge_type = torch.cat([torch.zeros(val_pos_edge_index_paper_paper.size(1)), torch.ones(val_pos_edge_index_paper_mesh.size(1))], 0)
-
-#     data.val_neg_edge_index = torch.cat([val_neg_edge_index_paper_paper, val_neg_edge_index_paper_mesh], 1)
-#     data.val_neg_edge_type = torch.cat([torch.zeros(val_neg_edge_index_paper_paper.size(1)), torch.ones(val_neg_edge_index_paper_mesh.size(1))], 0)
-
-#     data.test_pos_edge_index = torch.cat([test_pos_edge_index_paper_paper, test_pos_edge_index_paper_mesh], 1)
-#     data.test_pos_edge_type = torch.cat([torch.zeros(test_pos_edge_index_paper_paper.size(1)), torch.ones(test_pos_edge_index_paper_mesh.size(1))], 0)
-
-
-#     data.test_neg_edge_index = torch.cat([test_neg_edge_index_paper_paper, test_neg_edge_index_paper_mesh], 1)
-#     data.test_neg_edge_type = torch.cat([torch.zeros(test_neg_edge_index_paper_paper.size(1)), torch.ones(test_neg_edge_index_paper_mesh.size(1))], 0)
-
-#     #remove original types
-#     data.edge_type = None
-#     data.edge_index = None
-
-#     return data
-
-
-
 
 #Adapted from torch_geometric to delete the mask creation and to support sampling edge-type dependent
 #https://pytorch-geometric.readthedocs.io/en/1.6.3/_modules/torch_geometric/utils/train_test_split_edges.html 
-def train_test_split_edges_relational(data, val_ratio=0.05, test_ratio=0.1):
+def train_test_split_edges_relational(data, val_ratio=0, test_ratio=0):
     r"""Splits the edges of a :obj:`torch_geometric.data.Data` object
     into positive and negative train/val/test edges, and adds attributes of
     `train_pos_edge_index`, `train_neg_adj_mask`, `val_pos_edge_index`,
@@ -335,9 +197,9 @@ def train_test_split_edges_relational(data, val_ratio=0.05, test_ratio=0.1):
     data.test_neg_edge_index = torch.cat([test_neg_edge_index_paper_paper, test_neg_edge_index_paper_mesh], 1)
     data.test_neg_edge_type = torch.cat([torch.zeros(test_neg_edge_index_paper_paper.size(1)), torch.ones(test_neg_edge_index_paper_mesh.size(1))], 0)
 
-    #remove original types
-    data.edge_type = None
-    data.edge_index = None
+    # #remove original types
+    # data.edge_type = None
+    # data.edge_index = None
 
 
     ##Extra - sampling negative edges for training - did this during training before, but it's too slow to do on each epoch
@@ -353,6 +215,7 @@ def train_test_split_edges_relational(data, val_ratio=0.05, test_ratio=0.1):
     data.train_neg_edge_type = data.train_neg_edge_type[sort_indices]
 
     return data
+
 
 
 

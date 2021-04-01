@@ -12,7 +12,6 @@ import numpy as np
 from dask import dataframe as dd
 
 from dask.distributed import Client
-from torch_geometric.utils import to_undirected
 import pickle
 
 
@@ -159,12 +158,13 @@ mesh_filtered = mesh_filtered.sort_values(axis=0, by='DescriptorName_UI', ascend
 #Get mesh node ids to create reindexing dictionary
 descriptor_names = list(set(mesh_filtered['DescriptorName_UI'].tolist()))
 dict_reindex_mesh = dict(zip(descriptor_names, range(first_node_mesh_index, first_node_mesh_index + len(descriptor_names))))
-
+dict_ui_name = dict(zip(mesh_filtered['DescriptorName_UI'], mesh_filtered['DescriptorName']))
 
 #Save mesh node information
 mesh_info = pd.DataFrame([descriptor_names]).transpose()
 mesh_info.columns=['DescriptorName_UI']
 mesh_info['node_index'] = [dict_reindex_mesh[e] for e in mesh_info['DescriptorName_UI'].tolist()]
+mesh_info['name'] = [dict_ui_name[e] for e in mesh_info['DescriptorName_UI'].values]
 with open('mesh_nodes_info.pickle', 'wb') as f:
 	pickle.dump(mesh_info, f)
 
