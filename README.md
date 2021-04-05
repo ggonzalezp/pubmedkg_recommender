@@ -14,13 +14,12 @@ Enhanced visualization is provided, optionally, whereby the user can visualize k
 
 ```bash
 # Create conda environment
-conda create --name pubmed python=3.7
+conda create --name pubmed python=3.6.9
 
 # Activate the environment
 conda activate pubmed
 
 # Install packages
-conda install pytorch==1.6.0 torchvision==0.7.0 cudatoolkit=10.1 -c pytorch
 pip install dash==1.19.0
 pip install networkx==2.4
 pip install pandas==1.0.3
@@ -41,7 +40,10 @@ cd keyword_matching/SKR_Web_API_V2_4/examples
 
 The pubmed database is available [here](http://er.tacc.utexas.edu/datasets/ped).
 Processed files are provided as part of the tool.
-These are: (i) dictionaries with mesh:paper, paper:paper connections (filtered to keep only data from 2015 onwards), and (ii) Paper and keyword embeddings for visualization
+Processed files can be downloaded from [here](https://pubmed-explorer-dataset.s3.eu-west-2.amazonaws.com/dict_mesh_pmids.tar.gz), [here](https://pubmed-explorer-dataset.s3.eu-west-2.amazonaws.com/dict_pmid_refs.tar.gz) and [here](https://pubmed-explorer-dataset.s3.eu-west-2.amazonaws.com/out_embeddings.tar.gz). Once downloaded and unzipped, the folder ```out_embeddings``` should be placed in ```graph_embedding```. Folders ```dict_pmid_refs``` and ```dict_mesh_pmids``` should be placed in ```graph_embedding/dataset```
+
+
+Processed files are: (i) dictionaries with mesh:paper, paper:paper connections (filtered to keep only data from 2015 onwards), and (ii) Paper and keyword embeddings for visualization
 
 In case you wish to process the raw files to generate processed files, the process is as follows:
 1. Extract tables to be processed from the MySQL database:
