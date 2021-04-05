@@ -28,7 +28,7 @@ pip install pymysql==1.0.2
 pip install simplejson==3.17.2
 pip install scikit-learn==0.23.2
 pip install transformers==4.4.2
-pip isntall dask==2021.3.0
+
 
 # Compile Java script
 cd keyword_matching/SKR_Web_API_V2_4/examples
@@ -49,7 +49,6 @@ In case you wish to process the raw files to generate processed files, the proce
 ```
 cd graph_embedding/dataset
 python save_tables.py
-
 ```
 
 2. Generate dictionaries:
@@ -88,6 +87,14 @@ python embedding_het_graph_paper_mesh_rel3_only_training.py
 ```
 python visualize_embeddings.py
 ```
+
+Note that to process datasets, you need to install additional dependencies:
+
+```
+pip install dask==2021.3.0
+```
+and install [pytorch 1.6.0](https://pytorch.org/get-started/previous-versions/) and [torch-geometric 1.6.3](https://pytorch-geometric.readthedocs.io/en/1.6.3/notes/installation.html)
+
 
 
 ## Usage
