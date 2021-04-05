@@ -9,19 +9,20 @@ import numpy as np
 
 
 
-def get_embeddings_to_visualize(descriptors, dict_pmid_count_mesh):
+def get_embeddings_to_visualize(descriptors, pagerank_ordered):
 	
-	
+	# import pdb; pdb.set_trace()
 	#Retrieves PMIDs with descriptors
-	pmids_with_mesh = []
-	base_path = '../../../graph_embedding/dataset/dict_mesh_pmids'
-	for mesh in descriptors:
-	    if osp.isfile(osp.join(base_path, mesh + '.json')):
-	        pmids_with_mesh += json.load(open(osp.join(base_path, '{}.json'.format(mesh)), 'r'))
+	# pmids_with_mesh = []
+	# base_path = '../../../graph_embedding/dataset/dict_mesh_pmids'
+	# for mesh in descriptors:
+	#     if osp.isfile(osp.join(base_path, mesh + '.json')):
+	#         pmids_with_mesh += json.load(open(osp.join(base_path, '{}.json'.format(mesh)), 'r'))
 
 
-	pmids_with_mesh = list(set(pmids_with_mesh))
-	pmids_with_mesh = pd.DataFrame.from_dict(dict_pmid_count_mesh, orient='index')[pd.DataFrame.from_dict(dict_pmid_count_mesh, orient='index')[0] >= 0.5 * len(descriptors)].index.tolist() #filtering by # of mesh terms
+	# pmids_with_mesh = list(set(pmids_with_mesh))
+	pmids_with_mesh = list(pagerank_ordered.keys())[0:50]
+	# pmids_with_mesh = pd.DataFrame.from_dict(dict_pmid_count_mesh, orient='index')[pd.DataFrame.from_dict(dict_pmid_count_mesh, orient='index')[0] >= 0.5 * len(descriptors)].index.tolist() #filtering by # of mesh terms
 
 
 	#Loads embeddings

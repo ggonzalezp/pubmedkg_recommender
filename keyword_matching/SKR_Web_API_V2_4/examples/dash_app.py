@@ -52,12 +52,6 @@ if __name__ == '__main__':
     password="password"
     app = dash.Dash()
 
-    # Loading screen CSS
-    #css_directory = os.getcwd()
-    #stylesheets = ['loading.css']
-    #static_css_route = '/static/'
-    #for stylesheet in stylesheets:
-    #    app.css.append_css({"external_scripts": "/static/{}".format(stylesheet)})
 
     df1 = {'columns': ['Recommended Papers 📄', 'PMID', 'Last Author', 'Article Summary']}
     df2 =  {'columns': ['Recommended People 👩‍🔬👨‍🔬', 'Latest Affiliation 🏫', 'Citations', 'Number of Papers']}
@@ -75,7 +69,6 @@ if __name__ == '__main__':
 
                                                                     ], id='div_main'),
                     
-                                                # html.Div(id='output_div'),
                                                 html.Div(
                                                             dcc.Loading(
                                                                 id="loading-2",
@@ -160,7 +153,8 @@ if __name__ == '__main__':
 
                 # import pdb; pdb.set_trace()
                 graph = nx.read_gexf("test_graph.gexf")
-                top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
+                top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph, pagerank_ordered = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
+                # import pdb; pdb.set_trace()
                 global title_to_pmid
                 title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
                 # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
@@ -349,7 +343,7 @@ if __name__ == '__main__':
 
                 # import pdb; pdb.set_trace()
                 graph = nx.read_gexf("test_graph.gexf")
-                top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
+                top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_paper_count, pmid_to_title, graph, pagerank_ordered = graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, password)
                 title_to_pmid = dict([(value, key) for key, value in pmid_to_title.items()]) 
                 # sentences = articles_to_knowledge(top_k_papers_pmids, host, port, dbname, user, password)
                 sentences = articles_to_summary(top_k_papers_pmids, host, port, dbname, user, password, summarizer)
@@ -433,7 +427,7 @@ if __name__ == '__main__':
                 #EMBEDDING VISUALIZATION
                 ##################
                 t0 = time.time()
-                emb = get_embeddings_to_visualize(descriptors, dict_pmid_count_mesh)
+                emb = get_embeddings_to_visualize(descriptors, pagerank_ordered)
                 t1 = time.time()
                 print('got embeddings: {} secs'.format(t1-t0))
 

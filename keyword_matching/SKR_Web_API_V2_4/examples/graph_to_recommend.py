@@ -165,7 +165,7 @@ def graph_to_recommend(graph, dict_pmid_count_mesh, host, port, dbname, user, pa
         if idx >= nodes_graph_visualisation:
             graph.remove_node(key)
 
-    return top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_count, pmid_to_title, graph
+    return top_k_papers, top_k_papers_pmids, top_k_people, top_k_people_ids, authors_to_affiliation, papers_to_author, citation_dict, number_papers_dict, affiliation_count, pmid_to_title, graph, pagerank_ordered
 
 
 
