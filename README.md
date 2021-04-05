@@ -28,6 +28,7 @@ pip install pymysql==1.0.2
 pip install simplejson==3.17.2
 pip install scikit-learn==0.23.2
 pip install transformers==4.4.2
+pip isntall dask==2021.3.0
 
 # Compile Java script
 cd keyword_matching/SKR_Web_API_V2_4/examples
@@ -39,6 +40,55 @@ cd keyword_matching/SKR_Web_API_V2_4/examples
 ### Official Datasets
 
 The pubmed database is available [here](http://er.tacc.utexas.edu/datasets/ped).
+Processed files are provided as part of the tool.
+These are: (i) dictionaries with mesh:paper, paper:paper connections (filtered to keep only data from 2015 onwards), and (ii) Paper and keyword embeddings for visualization
+
+In case you wish to process the raw files to generate processed files, the process is as follows:
+1. Extract tables to be processed from the MySQL database:
+
+```
+cd graph_embedding/dataset
+python save_tables.py
+
+```
+
+2. Generate dictionaries:
+
+```
+python process_datasets_to_generate_dicts.py
+```
+
+3. Generate heterogeneous graph for paper-keyword visualization
+
+```
+python process_dataset.py
+```
+
+4. Compute data splits for link prediction task:
+
+```
+cd ..
+python compute_data_link_splits.py
+```
+
+4. Evaluate performance of link prediction task on test set:
+
+```
+python embedding_het_graph_paper_mesh_rel3.py
+```
+
+5. Optimize link prediction task with training set only:
+
+```
+python embedding_het_graph_paper_mesh_rel3_only_training.py
+```
+
+6.Post-process embeddings:
+
+```
+python visualize_embeddings.py
+```
+
 
 ## Usage
 
