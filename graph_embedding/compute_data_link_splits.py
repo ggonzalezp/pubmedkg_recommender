@@ -23,10 +23,18 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES']='2'
 
 
-#Create dataset
+#Create dataset split to evaluate performance on test set
 data = torch.load('dataset/het_graph_paper_mesh.pk')
 
 from utils import train_test_split_edges_relational
-data = train_test_split_edges_relational(data)
+data = train_test_split_edges_relational(data, val_ratio=0.05, test_ratio=0.1)
 
 torch.save(data, 'dataset/het_graph_paper_mesh_splitted_eval.pk')
+
+#Create dataset split to train only on training set
+data = torch.load('dataset/het_graph_paper_mesh.pk')
+
+from utils import train_test_split_edges_relational
+data = train_test_split_edges_relational(data, val_ratio=0, test_ratio=0)
+
+torch.save(data, 'dataset/het_graph_paper_mesh_splitted.pk')
