@@ -12,7 +12,6 @@ import plotly.graph_objs as go
 from transformers import pipeline
 import pickle
 import time
-import torch
 import json
 
 import plotly.express as px

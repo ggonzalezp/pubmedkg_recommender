@@ -34,6 +34,8 @@ cd keyword_matching/SKR_Web_API_V2_4/examples
 ../compile.sh GenericBatchUser.java
 ```
 
+Install [pytorch 1.6.0](https://pytorch.org/get-started/previous-versions/) (optionally installing CUDA if you have a CUDA-capable machine)
+
 ## Data
 
 ### Official Datasets
@@ -95,7 +97,7 @@ Note that to process datasets, you need to install additional dependencies:
 ```
 pip install dask==2021.3.0
 ```
-and install [pytorch 1.6.0](https://pytorch.org/get-started/previous-versions/) and [torch-geometric 1.6.3](https://pytorch-geometric.readthedocs.io/en/1.6.3/notes/installation.html)
+and install [torch-geometric 1.6.3](https://pytorch-geometric.readthedocs.io/en/1.6.3/notes/installation.html)
 
 
 

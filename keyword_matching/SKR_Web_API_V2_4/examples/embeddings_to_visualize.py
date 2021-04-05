@@ -1,5 +1,4 @@
 import pickle
-import torch
 import os.path as osp
 import json
 import pandas as pd
