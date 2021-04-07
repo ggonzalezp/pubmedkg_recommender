@@ -5,8 +5,11 @@
 
 ## About
 The PubMed explorer is designed to be a useful tool for promising students aiming to start a Ph.D. to explore new topics and to find a department and supervisor at the forefront of their field of interest. The tool provides a simple interface, whereby a user can input text or keywords. The input is then used to obtain the corresponding keywords and research field, and the most influential papers in the field as well information regarding 
-key authors and departments. In addition, a summary for each paper, computed using a Transfomer model operating on the paper's summary, is provided for the user to get an idea of each paper's content at a glance.
-Enhanced visualization is provided, optionally, whereby the user can visualize keywords and papers in a 2D space where distances are indicative of paper-paper and paper-keyword similarities.
+key authors and departments. 
+
+In addition, a summary for each paper, computed using a Transfomer model [1] operating on the paper's summary, is provided for the user to get an idea of each paper's content at a glance.
+
+Enhanced visualization is provided, optionally, whereby the user can visualize keywords and papers in a 2D space where distances are indicative of paper-paper and paper-keyword similarities. To this aim, we built a heterogeneous graph containing paper and keyword nodes, with paper-paper and paper-keyword edges. We used a multi-layer relational graph convolutional network (RGCN,[2]) architecture to compute paper and keyword embeddings during the optimization of a multi-relational link prediction task on the graph. t-SNE is applied to the embeddings before visualization on the fly. 
 
 ## Installation
 
@@ -115,3 +118,7 @@ python dash_app.py
 ## Questions
 
 If you have any questions, please create an issue [here](https://github.com/ggonzalezp/pubmedkg_recommender/issues/new).
+
+### References 
+[1] Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Clement Delangue, Anthony Moi, PierricCistac, Tim  Rault, R ́emi Louf, Morgan Funtowicz, Joe  Davison, Sam Shleifer, Patrick von Platen, Clara Ma, Yacine Jernite, Julien Plu, Canwen Xu, Teven Le Scao, Sylvain Gugger, Mariama Drame, Quentin Lhoest, and Alexander M. Rush. Transformers: State-of-the-art natural language processing.InProceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations, pages 38–45, Online, October 2020. Association for Computational Linguistics.
+[2] Michael Schlichtkrull, Thomas N Kipf, Peter Bloem, Rianne van den Berg, Ivan Titov, and Max Welling. Modeling Relational Data with Graph Convolutional Networks. 2017
